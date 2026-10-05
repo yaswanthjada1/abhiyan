@@ -335,7 +335,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {project.prompts.map(pr => (
+            {(project.prompts ?? []).map(pr => (
               <div key={pr.id} className="prompt-box">
                 <button className="prompt-copy-btn" onClick={() => handleCopyPrompt(pr.id, pr.promptText)} style={{ minHeight: '36px' }}>
                   {copiedPromptId === pr.id ? <Check size={14} /> : <Copy size={14} />}
@@ -366,7 +366,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.25rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              {guide.documentationGuide.map(sec => (
+              {(guide.documentationGuide ?? []).map(sec => (
                 <div key={sec.sectionNumber} style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
                   <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.2rem' }}>
                     Section {sec.sectionNumber}: {sec.title}
@@ -398,7 +398,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {guide.vivaQuestions.map((vq, idx) => {
+              {(guide.vivaQuestions ?? []).map((vq, idx) => {
                 const isOpen = expandedVivaId === vq.id;
                 return (
                   <div key={vq.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -438,7 +438,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.65rem' }}>
-              {guide.demoChecklist.map((item, idx) => (
+              {(guide.demoChecklist ?? []).map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-subtle)', padding: '0.6rem 0.75rem', borderRadius: 'var(--radius-sm)', fontSize: '0.825rem' }}>
                   <CheckCircle2 size={16} color="var(--success)" style={{ flexShrink: 0 }} />
                   <span>{item}</span>

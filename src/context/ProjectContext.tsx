@@ -209,9 +209,18 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     currentCompleted[taskId] = newStatus;
 
     let totalTasksCount = 0;
-    activeProject.dailyTasks.forEach(d => {
-      totalTasksCount += d.tasks.length;
-    });
+    const guide = activeProject.projectGuide;
+
+    if (guide) {
+      [guide.day1, guide.day2, guide.day3, guide.day4, guide.day5].forEach(d => {
+        totalTasksCount += d.tasks.length;
+      });
+    } else {
+      const dailyTasks = activeProject.dailyTasks ?? [];
+      dailyTasks.forEach(d => {
+        totalTasksCount += d.tasks.length;
+      });
+    }
 
     let doneCount = 0;
     Object.values(currentCompleted).forEach(val => {
@@ -219,7 +228,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
 
     const newProgressPct = totalTasksCount > 0 ? Math.round((doneCount / totalTasksCount) * 100) : 0;
-    const newDay = Math.min(10, Math.max(1, dayNumber));
+    const newDay = Math.min(5, Math.max(1, dayNumber));
 
     const updatedTeam: TeamDocument = {
       ...activeTeam,
