@@ -1,28 +1,35 @@
 import React from 'react';
 import { Project } from '../types/project';
 import { useProjectContext } from '../context/ProjectContext';
-import { Users } from 'lucide-react';
+import { Users, Calendar } from 'lucide-react';
 
 interface ProjectCardProps {
   project: Project;
-  onSelectProject: (project: Project) => void;
+  onSelect?: (project: Project) => void;
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelectProject }) => {
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   const { setSelectedProjectCode, setActiveTab, teamCounts } = useProjectContext();
 
-  // Dynamic selection count from Firebase
   const currentTeamCount = teamCounts[project.projectCode] || 0;
   const isFull = currentTeamCount >= 3;
   const remainingSlots = Math.max(0, 3 - currentTeamCount);
+
+  const minSize = project.minimumTeamSize || 2;
+  const maxSize = project.maximumTeamSize || 5;
 
   return (
     <div className="project-card">
       <div>
         {/* Badges */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.35rem' }}>
           <span className="badge-code">{project.projectCode}</span>
-          <span className="badge badge-category">{project.category}</span>
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+            <span className="badge" style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', fontSize: '0.7rem' }}>
+              <Calendar size={11} style={{ marginRight: '3px' }} /> 5 DAYS
+            </span>
+            <span className="badge badge-category">{project.category}</span>
+          </div>
         </div>
 
         {/* Title */}
@@ -33,8 +40,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelectProje
 
         {/* Math Used */}
         <div style={{ marginBottom: '1rem' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>
-            MATH USED:
+          <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>
+            MATHEMATICS:
           </span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
             {project.mathUsed.map((m, idx) => (
@@ -47,11 +54,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelectProje
       </div>
 
       <div>
-        {/* Dynamic Teams Status from Firebase */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 600 }}>
+        {/* Dynamic Teams Status */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}>
             <Users size={14} color="var(--text-muted)" />
             <span>Teams: {currentTeamCount} / 3</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>({minSize}–{maxSize} members)</span>
           </div>
 
           <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
@@ -77,9 +85,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onSelectProje
             setSelectedProjectCode(project.projectCode);
             setActiveTab('project-detail');
           }}
-          style={{ width: '100%', justifyContent: 'center' }}
+          style={{ width: '100%', justifyContent: 'center', minHeight: '44px' }}
         >
-          View Project
+          View 5-Day Roadmap & Guide
         </button>
       </div>
     </div>

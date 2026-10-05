@@ -181,7 +181,7 @@ export const uploadScreenshotToFirebase = async (
   uploaderName: string
 ): Promise<ScreenshotMetadata | null> => {
   try {
-    const storagePath = `teams/${teamId}/screenshots/day-0${day}/${Date.now()}_${file.name}`;
+    const storagePath = `teams/${teamId}/day-${day}/${Date.now()}_${file.name}`;
     const storageRef = ref(storage, storagePath);
 
     const uploadResult = await uploadBytes(storageRef, file);

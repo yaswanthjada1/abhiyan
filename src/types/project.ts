@@ -11,6 +11,7 @@ export type DifficultyLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export interface TeamMember {
   name: string;
   rollNumber: string;
+  role?: 'leader' | 'member';
 }
 
 export interface TeamLeader {
@@ -28,7 +29,7 @@ export interface TeamDocument {
   leader: TeamLeader;
   members: TeamMember[];
   progress: number;    // 0 - 100
-  currentDay: number;  // 1 - 10
+  currentDay: number;  // 1 - 5
   completedTasks: Record<string, boolean>; // e.g. { "d1-task1": true }
   createdAt?: any;
   updatedAt?: any;
@@ -39,8 +40,7 @@ export interface ScreenshotMetadata {
   id: string;
   teamId: string;
   projectId: string;
-  day: number;
-  taskId?: string;
+  day: number; // 1 to 5
   storagePath?: string;
   downloadUrl: string;
   caption: string;
@@ -58,22 +58,26 @@ export interface ImplementationStep {
 export interface TaskItem {
   id: string;
   text: string;
+  description?: string;
+  expectedOutput?: string;
 }
 
-export interface DailyTask {
-  day: number;
+export interface DayGuideTask {
+  id: string;
   title: string;
-  objectives: string[];
-  tasks: TaskItem[];
+  description: string;
   expectedOutput: string;
 }
 
 export type PromptCategory =
+  | 'Architecture'
+  | 'Core Logic'
+  | 'UI & Visualization'
+  | 'Debugging'
+  | 'Testing'
   | 'Understanding'
   | 'Mathematics'
   | 'Coding'
-  | 'Debugging'
-  | 'Testing'
   | 'Documentation'
   | 'PPT'
   | 'Viva';
@@ -83,6 +87,40 @@ export interface ProjectPrompt {
   title: string;
   category: PromptCategory;
   promptText: string;
+}
+
+export interface DayGuide {
+  day: number; // 1 to 5
+  title: 'SETUP' | 'AI VIBE CODE' | 'CUSTOMISE' | 'DOCUMENT' | 'DEMO';
+  goal: string;
+  objective: string;
+  tasks: DayGuideTask[];
+  prompts?: ProjectPrompt[];
+  expectedOutput: string[];
+}
+
+export interface VivaQuestion {
+  id: string;
+  question: string;
+  answer: string;
+  category: 'Problem' | 'Mathematics' | 'Algorithm' | 'Implementation' | 'Results' | 'Limitations' | 'Real-world';
+}
+
+export interface DocumentationSection {
+  sectionNumber: number;
+  title: string;
+  guidance: string;
+}
+
+export interface ProjectGuide {
+  day1: DayGuide;
+  day2: DayGuide;
+  day3: DayGuide;
+  day4: DayGuide;
+  day5: DayGuide;
+  documentationGuide: DocumentationSection[];
+  vivaQuestions: VivaQuestion[];
+  demoChecklist: string[];
 }
 
 export interface ProjectResource {
@@ -102,7 +140,7 @@ export interface Project {
   mathUsed: string[];
   realWorldConnection: string;
   difficulty: DifficultyLevel;
-  estimatedDuration: number; // 10
+  estimatedDuration: number; // 5 days
   requiredSkills: string[];
   recommendedTechStack: {
     frontend: string;
@@ -111,12 +149,23 @@ export interface Project {
     charts: string;
     db: string;
   };
-  selectionLimit: number;    // 3
+  selectionLimit: number;    // 3 teams max
   selectedTeamCount: number; // 0, 1, 2, 3
+  minimumTeamSize?: number;  // e.g. 2
+  maximumTeamSize?: number;  // e.g. 5
   status: 'available' | 'full';
   implementationGuide: ImplementationStep[];
-  dailyTasks: DailyTask[];
+  dailyTasks?: Array<{
+    day: number;
+    title: string;
+    objectives: string[];
+    tasks: TaskItem[];
+    expectedOutput: string;
+  }>;
+  projectGuide?: ProjectGuide;
   prompts: ProjectPrompt[];
+  vivaQuestions?: VivaQuestion[];
+  demoChecklist?: string[];
   resources: ProjectResource[];
   createdAt?: any;
   updatedAt?: any;

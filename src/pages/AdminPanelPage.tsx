@@ -52,7 +52,7 @@ export const AdminPanelPage: React.FC = () => {
   // Protected Route Guard
   if (!adminUser) {
     return (
-      <div style={{ maxWidth: '440px', margin: '4rem auto', textAlign: 'center' }}>
+      <div style={{ maxWidth: '440px', width: '100%', margin: '4rem auto', textAlign: 'center' }}>
         <div
           style={{
             background: 'var(--bg-card)',
@@ -69,7 +69,7 @@ export const AdminPanelPage: React.FC = () => {
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
             Please sign in with administrator credentials to access the management portal.
           </p>
-          <button className="btn-primary" onClick={() => setActiveTab('admin-login')}>
+          <button className="btn-primary" onClick={() => setActiveTab('admin-login')} style={{ minHeight: '44px' }}>
             Go to Sign In
           </button>
         </div>
@@ -109,7 +109,7 @@ export const AdminPanelPage: React.FC = () => {
       return (
         t.teamName.toLowerCase().includes(q) ||
         t.projectId.toLowerCase().includes(q) ||
-        t.leader.name.toLowerCase().includes(q) ||
+        t.leader?.name.toLowerCase().includes(q) ||
         t.referenceId.toLowerCase().includes(q)
       );
     }
@@ -127,7 +127,6 @@ export const AdminPanelPage: React.FC = () => {
   }> = [];
 
   adminTeams.forEach(team => {
-    // If team has custom uploaded screenshots or sample screenshots
     if (team.screenshots && team.screenshots.length > 0) {
       team.screenshots.forEach(s => {
         allScreenshotsList.push({
@@ -159,20 +158,20 @@ export const AdminPanelPage: React.FC = () => {
   const recentActivities = [
     { text: 'Team Apex selected Project A1 (Hospital Ward Staffing Optimizer)', time: '12 minutes ago', badge: 'Selection' },
     { text: 'Team Matrix uploaded Day 4 progress screenshot', time: '34 minutes ago', badge: 'Screenshot' },
-    { text: 'Team Vector completed Day 6 tasks', time: '1 hour ago', badge: 'Task Complete' },
+    { text: 'Team Vector completed Day 5 demo tasks', time: '1 hour ago', badge: 'Task Complete' },
     { text: 'Team Cipher selected Project F1 (Hill Cipher Encryption)', time: '2 hours ago', badge: 'Selection' },
-    { text: 'Team Alpha reached 80% project completion', time: '3 hours ago', badge: 'Milestone' }
+    { text: 'Team Alpha reached 100% project completion', time: '3 hours ago', badge: 'Milestone' }
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '80vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '80vh', width: '100%' }}>
       {/* 1. TOP ADMIN HEADER */}
       <div
         style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-lg)',
-          padding: '1rem 1.5rem',
+          padding: '1rem 1.25rem',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
@@ -209,7 +208,7 @@ export const AdminPanelPage: React.FC = () => {
         </div>
 
         {/* Search & Administrator Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: '500px', justifyContent: 'flex-end' }}>
           <div
             style={{
               display: 'flex',
@@ -219,16 +218,18 @@ export const AdminPanelPage: React.FC = () => {
               border: '1px solid var(--border-color)',
               borderRadius: 'var(--radius-md)',
               padding: '0.4rem 0.75rem',
-              width: '220px'
+              width: '100%',
+              maxWidth: '260px',
+              minWidth: 0
             }}
           >
-            <Search size={15} color="var(--text-muted)" />
+            <Search size={15} color="var(--text-muted)" style={{ flexShrink: 0 }} />
             <input
               type="text"
               placeholder="Search administration..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.825rem', width: '100%' }}
+              style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.825rem', width: '100%', minWidth: 0 }}
             />
           </div>
 
@@ -236,22 +237,19 @@ export const AdminPanelPage: React.FC = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.6rem',
-              padding: '0.35rem 0.75rem',
+              gap: '0.5rem',
+              padding: '0.35rem 0.65rem',
               borderRadius: 'var(--radius-md)',
               background: 'var(--bg-subtle)',
               border: '1px solid var(--border-color)'
             }}
           >
-            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ShieldCheck size={16} />
+            <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShieldCheck size={14} />
             </div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
                 Administrator
-              </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                {adminUser.email}
               </div>
             </div>
           </div>
@@ -259,7 +257,7 @@ export const AdminPanelPage: React.FC = () => {
           <button
             className="btn-secondary"
             onClick={logoutAdmin}
-            style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+            style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem', minHeight: '36px' }}
             title="Sign out of administration"
           >
             <LogOut size={14} /> Sign out
@@ -321,7 +319,7 @@ export const AdminPanelPage: React.FC = () => {
 
       {/* SECTION 1: OVERVIEW */}
       {currentSection === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Overview</h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
@@ -330,7 +328,7 @@ export const AdminPanelPage: React.FC = () => {
           </div>
 
           {/* 4 Compact Statistic Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.15rem' }}>
               <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 PROJECTS
@@ -368,14 +366,15 @@ export const AdminPanelPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Project Availability Table */}
+          {/* Project Availability Container (Desktop Table + Mobile Cards) */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
             <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>Project Availability</h3>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Showing 50 problem statements</span>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            {/* Desktop Table View */}
+            <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-color)', textTransform: 'uppercase', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
@@ -412,8 +411,29 @@ export const AdminPanelPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Cards View */}
+            <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
+              {projects.slice(0, 10).map(p => {
+                const count = teamCounts[p.projectCode] || 0;
+                const isFull = count >= 3;
+                return (
+                  <div key={p.projectCode} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      <span className="badge-code">{p.projectCode}</span>
+                      <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
+                        {isFull ? 'Full' : `${count}/3 Teams`}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.2rem' }}>{p.title}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{p.category}</div>
+                  </div>
+                );
+              })}
+            </div>
+
             <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid var(--border-color)', textAlign: 'center', background: 'var(--bg-subtle)' }}>
-              <button className="btn-secondary" onClick={() => setCurrentSection('projects')} style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>
+              <button className="btn-secondary" onClick={() => setCurrentSection('projects')} style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', minHeight: '44px', width: '100%', justifyContent: 'center' }}>
                 View All 50 Projects
               </button>
             </div>
@@ -428,21 +448,21 @@ export const AdminPanelPage: React.FC = () => {
                   key={idx}
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
                     padding: '0.65rem 0.85rem',
                     background: 'var(--bg-subtle)',
                     borderRadius: 'var(--radius-sm)',
                     fontSize: '0.85rem'
                   }}
                 >
-                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{act.text}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
                       {act.badge}
                     </span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{act.time}</span>
                   </div>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{act.text}</span>
                 </div>
               ))}
             </div>
@@ -455,29 +475,29 @@ export const AdminPanelPage: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Projects</h2>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Projects Catalog</h2>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                 Manage the 50 available mini projects.
               </p>
             </div>
 
             {/* Search & Category Filter */}
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '0.4rem 0.75rem', width: '240px' }}>
-                <Search size={15} color="var(--text-muted)" />
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', width: '100%', maxWidth: '500px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '0.4rem 0.75rem', flex: 1, minWidth: '180px' }}>
+                <Search size={15} color="var(--text-muted)" style={{ flexShrink: 0 }} />
                 <input
                   type="text"
                   placeholder="Search projects..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.85rem', width: '100%' }}
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.85rem', width: '100%', minWidth: 0 }}
                 />
               </div>
 
               <select
                 value={categoryFilter}
                 onChange={e => setCategoryFilter(e.target.value)}
-                style={{ padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'var(--bg-card)', fontSize: '0.85rem' }}
+                style={{ padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'var(--bg-card)', fontSize: '0.85rem', minHeight: '44px' }}
               >
                 <option value="All">All Categories</option>
                 <option value="Rank & Linear Systems">Rank & Linear Systems</option>
@@ -487,22 +507,13 @@ export const AdminPanelPage: React.FC = () => {
                 <option value="Singular Value Decomposition">Singular Value Decomposition</option>
                 <option value="Mixed / Multi-Topic">Mixed / Multi-Topic</option>
               </select>
-
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                style={{ padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'var(--bg-card)', fontSize: '0.85rem' }}
-              >
-                <option value="All">All Statuses</option>
-                <option value="Available">Available</option>
-                <option value="Full">Full</option>
-              </select>
             </div>
           </div>
 
-          {/* Projects Table */}
+          {/* Projects Container (Desktop Table + Mobile Cards) */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
+            {/* Desktop Table */}
+            <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-color)', textTransform: 'uppercase', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
@@ -516,46 +527,65 @@ export const AdminPanelPage: React.FC = () => {
                 </thead>
 
                 <tbody>
-                  {filteredProjects.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        No matching projects found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredProjects.map(p => {
-                      const count = teamCounts[p.projectCode] || 0;
-                      const isFull = count >= 3;
-                      return (
-                        <tr key={p.projectCode} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '0.65rem 1rem' }}>
-                            <span className="badge-code">{p.projectCode}</span>
-                          </td>
-                          <td style={{ padding: '0.65rem 1rem', fontWeight: 600 }}>{p.title}</td>
-                          <td style={{ padding: '0.65rem 1rem' }}>
-                            <span className="badge badge-category">{p.category}</span>
-                          </td>
-                          <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 3</td>
-                          <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>
-                            <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
-                              {isFull ? 'Full' : 'Available'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '0.65rem 1rem', textAlign: 'right' }}>
-                            <button
-                              className="btn-secondary"
-                              onClick={() => setViewingProject(p)}
-                              style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem' }}
-                            >
-                              <Eye size={13} /> View
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
+                  {filteredProjects.map(p => {
+                    const count = teamCounts[p.projectCode] || 0;
+                    const isFull = count >= 3;
+                    return (
+                      <tr key={p.projectCode} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <td style={{ padding: '0.65rem 1rem' }}>
+                          <span className="badge-code">{p.projectCode}</span>
+                        </td>
+                        <td style={{ padding: '0.65rem 1rem', fontWeight: 600 }}>{p.title}</td>
+                        <td style={{ padding: '0.65rem 1rem' }}>
+                          <span className="badge badge-category">{p.category}</span>
+                        </td>
+                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 3</td>
+                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>
+                          <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
+                            {isFull ? 'Full' : 'Available'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.65rem 1rem', textAlign: 'right' }}>
+                          <button
+                            className="btn-secondary"
+                            onClick={() => setViewingProject(p)}
+                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', minHeight: '36px' }}
+                          >
+                            <Eye size={13} /> View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card Stack */}
+            <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
+              {filteredProjects.map(p => {
+                const count = teamCounts[p.projectCode] || 0;
+                const isFull = count >= 3;
+                return (
+                  <div key={p.projectCode} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      <span className="badge-code">{p.projectCode}</span>
+                      <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
+                        {isFull ? 'Full' : `${count}/3 Teams`}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.25rem' }}>{p.title}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.65rem' }}>{p.category}</div>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setViewingProject(p)}
+                      style={{ width: '100%', justifyContent: 'center', minHeight: '44px' }}
+                    >
+                      <Eye size={14} /> View Details
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -565,14 +595,15 @@ export const AdminPanelPage: React.FC = () => {
       {currentSection === 'teams' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Teams</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Registered Teams</h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
               View registered teams and their project progress.
             </p>
           </div>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
+            {/* Desktop Table */}
+            <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-color)', textTransform: 'uppercase', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
@@ -603,7 +634,7 @@ export const AdminPanelPage: React.FC = () => {
                           <td style={{ padding: '0.65rem 1rem' }}>
                             <span className="badge-code">{t.projectId}</span>
                           </td>
-                          <td style={{ padding: '0.65rem 1rem' }}>{t.leader.name}</td>
+                          <td style={{ padding: '0.65rem 1rem' }}>{t.leader?.name || 'N/A'}</td>
                           <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>{(t.members?.length || 0) + 1}</td>
                           <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--primary)' }}>
                             {prog}%
@@ -617,7 +648,7 @@ export const AdminPanelPage: React.FC = () => {
                             <button
                               className="btn-secondary"
                               onClick={() => setViewingTeam(t)}
-                              style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem' }}
+                              style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', minHeight: '36px' }}
                             >
                               <Eye size={13} /> View Team
                             </button>
@@ -628,6 +659,33 @@ export const AdminPanelPage: React.FC = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
+              {filteredTeams.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1rem' }}>No teams registered yet.</p>
+              ) : (
+                filteredTeams.map(t => (
+                  <div key={t.teamId} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      <span className="badge-code">{t.projectId}</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>{t.progress || 0}%</span>
+                    </div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.25rem' }}>{t.teamName}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                      Leader: {t.leader?.name || 'N/A'} • {(t.members?.length || 0) + 1} Members
+                    </div>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setViewingTeam(t)}
+                      style={{ width: '100%', justifyContent: 'center', minHeight: '44px' }}
+                    >
+                      <Eye size={14} /> View Team Details
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -644,7 +702,7 @@ export const AdminPanelPage: React.FC = () => {
           </div>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
+            <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-color)', textTransform: 'uppercase', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
@@ -677,6 +735,24 @@ export const AdminPanelPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
+              {projects.map(p => {
+                const count = teamCounts[p.projectCode] || 0;
+                const isFull = count >= 3;
+                return (
+                  <div key={p.projectCode} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                      <span className="badge-code">{p.projectCode}</span>
+                      <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
+                        {isFull ? 'Full' : `${3 - count} Available`}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>{p.title}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -696,7 +772,7 @@ export const AdminPanelPage: React.FC = () => {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No recent activity.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
               {adminTeams.map(t => (
                 <div key={t.teamId} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.25rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -706,7 +782,7 @@ export const AdminPanelPage: React.FC = () => {
 
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.2rem' }}>{t.teamName}</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                    Leader: {t.leader.name} • Current Day {t.currentDay || 1} / 10
+                    Leader: {t.leader?.name || 'N/A'} • Current Day {t.currentDay || 1} / 5
                   </p>
 
                   <div className="progress-bar-container">
@@ -730,18 +806,18 @@ export const AdminPanelPage: React.FC = () => {
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '240px' }}>
               <select
                 value={screenshotDayFilter}
                 onChange={e => setScreenshotDayFilter(e.target.value === 'All' ? 'All' : Number(e.target.value))}
-                style={{ padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'var(--bg-card)', fontSize: '0.85rem' }}
+                style={{ padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', background: 'var(--bg-card)', fontSize: '0.85rem', minHeight: '44px', width: '100%' }}
               >
-                <option value="All">All Days</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
-                  <option key={d} value={d}>
-                    Day {d}
-                  </option>
-                ))}
+                <option value="All">All 5 Days</option>
+                <option value={1}>Day 1 — SETUP</option>
+                <option value={2}>Day 2 — AI VIBE CODE</option>
+                <option value={3}>Day 3 — CUSTOMISE</option>
+                <option value={4}>Day 4 — DOCUMENT</option>
+                <option value={5}>Day 5 — DEMO</option>
               </select>
             </div>
           </div>
@@ -751,7 +827,7 @@ export const AdminPanelPage: React.FC = () => {
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No screenshots have been uploaded yet.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
+            <div className="screenshots-grid">
               {filteredScreenshots.map((scr, idx) => (
                 <div
                   key={idx}
@@ -791,31 +867,22 @@ export const AdminPanelPage: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.4rem' }}>
-                1. Student Selection Workflow
+                1. Student Selection & Dynamic Team Size
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Students browse the 50 static problem statements directly on the portal. When a team selects a project, they enter their team name, leader details, and member roll numbers. The system generates a unique <strong>Project Reference ID</strong> (e.g. <code>MMH-A1-X7K92</code>).
+                Students browse the 50 static problem statements. During registration, teams dynamically add or remove members within the project-configured limits (2–5 members). Upon submission, a unique <strong>Project Reference ID</strong> (e.g. <code>MMH-A1-X7K92</code>) is generated.
               </p>
             </div>
 
-            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.4rem' }}>
-                2. Capacity Limit Enforcement (3 Teams / Project)
+                2. 5-Day Framework & Capacity Limit
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Each project statement allows maximum 3 registered teams. When the 3rd team completes registration, the project status automatically becomes <strong>FULL</strong> and prevents any 4th team registration.
-              </p>
-            </div>
-
-            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.4rem' }}>
-                3. Team Progress & Workspace Access
-              </h3>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Students access their workspace via <strong>My Project</strong> by entering their Reference ID. They check off 10-day roadmap tasks and upload proof screenshots.
+                Projects are capped at maximum 3 teams per project statement. Students follow a standardized 5-day roadmap (Day 1 Setup, Day 2 AI Vibe Code, Day 3 Customise, Day 4 Document, Day 5 Demo) and upload proof screenshots for each stage.
               </p>
             </div>
           </div>
@@ -824,7 +891,7 @@ export const AdminPanelPage: React.FC = () => {
 
       {/* SECTION 8: SETTINGS */}
       {currentSection === 'settings' && (
-        <div style={{ maxWidth: '550px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ maxWidth: '550px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Settings</h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
@@ -841,7 +908,7 @@ export const AdminPanelPage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-              <button className="btn-secondary" onClick={logoutAdmin} style={{ fontSize: '0.85rem' }}>
+              <button className="btn-secondary" onClick={logoutAdmin} style={{ fontSize: '0.85rem', minHeight: '44px' }}>
                 <LogOut size={14} /> Sign out
               </button>
             </div>
@@ -854,11 +921,11 @@ export const AdminPanelPage: React.FC = () => {
         <div className="modal-overlay" onClick={() => setViewingProject(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                 <span className="badge-code">{viewingProject.projectCode}</span>
                 <span className="badge badge-category">{viewingProject.category}</span>
               </div>
-              <button className="btn-secondary" onClick={() => setViewingProject(null)} style={{ padding: '0.25rem 0.5rem' }}>
+              <button className="btn-secondary" onClick={() => setViewingProject(null)} style={{ padding: '0.25rem 0.5rem', minHeight: '36px' }}>
                 <X size={16} />
               </button>
             </div>
@@ -912,7 +979,7 @@ export const AdminPanelPage: React.FC = () => {
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '550px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <span className="badge-code">{viewingTeam.projectId}</span>
-              <button className="btn-secondary" onClick={() => setViewingTeam(null)} style={{ padding: '0.25rem 0.5rem' }}>
+              <button className="btn-secondary" onClick={() => setViewingTeam(null)} style={{ padding: '0.25rem 0.5rem', minHeight: '36px' }}>
                 <X size={16} />
               </button>
             </div>
@@ -973,7 +1040,7 @@ export const AdminPanelPage: React.FC = () => {
       {/* LIGHTBOX PREVIEW MODAL */}
       {previewImage && (
         <div className="modal-overlay" onClick={() => setPreviewImage(null)}>
-          <div style={{ maxWidth: '800px', width: '90%', position: 'relative' }} onClick={e => e.stopPropagation()}>
+          <div style={{ maxWidth: '800px', width: 'calc(100% - 24px)', position: 'relative' }} onClick={e => e.stopPropagation()}>
             <button
               onClick={() => setPreviewImage(null)}
               style={{
@@ -983,8 +1050,8 @@ export const AdminPanelPage: React.FC = () => {
                 background: 'white',
                 border: 'none',
                 borderRadius: '50%',
-                width: '32px',
-                height: '32px',
+                width: '36px',
+                height: '36px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
