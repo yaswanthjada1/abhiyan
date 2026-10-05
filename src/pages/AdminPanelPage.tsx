@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectContext } from '../context/ProjectContext';
 import { Project, TeamDocument } from '../types/project';
+import { exportAdminDataToExcel } from '../utils/excelExporter';
+import { fetchTeamNotes } from '../firebase/services';
 import {
   BookOpen,
   FolderKanban,
@@ -15,7 +17,10 @@ import {
   Eye,
   LogOut,
   HelpCircle,
-  ShieldCheck
+  ShieldCheck,
+  Download,
+  Loader2,
+  FileText
 } from 'lucide-react';
 
 export const AdminPanelPage: React.FC = () => {
@@ -37,10 +42,13 @@ export const AdminPanelPage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [screenshotDayFilter, setScreenshotDayFilter] = useState<number | 'All'>('All');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Selected Detail Drawers / Modals
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
   const [viewingTeam, setViewingTeam] = useState<TeamDocument | null>(null);
+  const [teamNotesData, setTeamNotesData] = useState<Record<string, string>>({});
+  const [loadingNotes, setLoadingNotes] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,6 +56,25 @@ export const AdminPanelPage: React.FC = () => {
       loadAdminTeams();
     }
   }, [adminUser]);
+
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      await exportAdminDataToExcel(projects, adminTeams, teamCounts);
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleOpenTeamDetail = async (team: TeamDocument) => {
+    setViewingTeam(team);
+    setLoadingNotes(true);
+    const notes = await fetchTeamNotes(team.teamId);
+    setTeamNotesData(notes);
+    setLoadingNotes(false);
+  };
 
   // Protected Route Guard
   if (!adminUser) {
@@ -208,7 +235,32 @@ export const AdminPanelPage: React.FC = () => {
         </div>
 
         {/* Search & Administrator Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: '500px', justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: '600px', justifyContent: 'flex-end' }}>
+          <button
+            onClick={handleExportData}
+            disabled={isExporting}
+            className="btn-primary"
+            style={{
+              fontSize: '0.825rem',
+              padding: '0.4rem 0.85rem',
+              minHeight: '38px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem'
+            }}
+          >
+            {isExporting ? (
+              <>
+                <Loader2 size={15} className="spin" /> Preparing Export...
+              </>
+            ) : (
+              <>
+                <Download size={15} /> Export Data (.xlsx)
+              </>
+            )}
+          </button>
+
           <div
             style={{
               display: 'flex',
@@ -219,7 +271,7 @@ export const AdminPanelPage: React.FC = () => {
               borderRadius: 'var(--radius-md)',
               padding: '0.4rem 0.75rem',
               width: '100%',
-              maxWidth: '260px',
+              maxWidth: '220px',
               minWidth: 0
             }}
           >
@@ -647,7 +699,7 @@ export const AdminPanelPage: React.FC = () => {
                           <td style={{ padding: '0.65rem 1rem', textAlign: 'right' }}>
                             <button
                               className="btn-secondary"
-                              onClick={() => setViewingTeam(t)}
+                              onClick={() => handleOpenTeamDetail(t)}
                               style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', minHeight: '36px' }}
                             >
                               <Eye size={13} /> View Team
@@ -678,7 +730,7 @@ export const AdminPanelPage: React.FC = () => {
                     </div>
                     <button
                       className="btn-secondary"
-                      onClick={() => setViewingTeam(t)}
+                      onClick={() => handleOpenTeamDetail(t)}
                       style={{ width: '100%', justifyContent: 'center', minHeight: '44px' }}
                     >
                       <Eye size={14} /> View Team Details
@@ -1015,6 +1067,39 @@ export const AdminPanelPage: React.FC = () => {
               <div className="progress-bar-container">
                 <div className="progress-bar-fill" style={{ width: `${viewingTeam.progress || 0}%` }} />
               </div>
+            </div>
+
+            {/* TEAM JOURNAL & NOTES INSPECTION */}
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem', marginBottom: '1rem' }}>
+              <strong style={{ fontSize: '0.8rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                <FileText size={14} /> TEAM JOURNAL & NOTES:
+              </strong>
+              {loadingNotes ? (
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Loader2 size={12} className="spin" /> Loading team notes...
+                </div>
+              ) : Object.keys(teamNotesData).length === 0 ? (
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  No journal notes entered by this team yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                  {['day1', 'day2', 'day3', 'day4', 'day5', 'general'].map(key => {
+                    const noteContent = teamNotesData[key];
+                    if (!noteContent) return null;
+                    return (
+                      <div key={key} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem' }}>
+                        <strong style={{ color: 'var(--primary)', textTransform: 'uppercase', fontSize: '0.725rem' }}>
+                          {key.replace('day', 'Day ')} Notes:
+                        </strong>
+                        <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+                          {noteContent}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {viewingTeam.screenshots && viewingTeam.screenshots.length > 0 && (

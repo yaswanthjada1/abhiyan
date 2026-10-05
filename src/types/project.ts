@@ -66,7 +66,11 @@ export interface DayGuideTask {
   id: string;
   title: string;
   description: string;
+  why?: string;
+  how?: string;
   expectedOutput: string;
+  commonMistakes?: string;
+  screenshotSuggestion?: string; // Evidence to capture
 }
 
 export type PromptCategory =

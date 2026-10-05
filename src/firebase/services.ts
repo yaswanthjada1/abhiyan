@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   setDoc,
   updateDoc,
@@ -8,14 +9,15 @@ import {
   where,
   runTransaction,
   serverTimestamp,
-  addDoc
+  addDoc,
+  onSnapshot
 } from 'firebase/firestore';
 import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from './config';
 import { TeamDocument, ScreenshotMetadata, AdminUser, Project } from '../types/project';
 import { PROJECTS } from '../data/projects';
@@ -171,7 +173,75 @@ export const updateTeamTaskProgressInFirestore = async (
   }
 };
 
-// UPLOAD SCREENSHOT TO FIREBASE STORAGE & FIRESTORE METADATA
+// RESUMABLE SCREENSHOT UPLOAD WITH REAL-TIME PROGRESS TRACKING
+export const uploadScreenshotResumable = (
+  teamId: string,
+  projectId: string,
+  day: number,
+  file: File,
+  caption: string,
+  uploaderName: string,
+  onProgress: (progressPct: number) => void
+): Promise<ScreenshotMetadata> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `teams/${teamId}/screenshots/day-${day}/${Date.now()}_${sanitizedFileName}`;
+      const storageRef = ref(storage, storagePath);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          if (snapshot.totalBytes > 0) {
+            const progress = Math.round(
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            );
+            onProgress(progress);
+          }
+        },
+        (error) => {
+          console.error('Firebase Storage upload error:', error);
+          const msg = error.code === 'storage/unauthorized'
+            ? 'Permission denied by Storage rules.'
+            : error.message || 'Network or Storage upload failure.';
+          reject(new Error(`Upload failed: ${msg}`));
+        },
+        async () => {
+          try {
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            const metadata: ScreenshotMetadata = {
+              id: `scr-${Date.now()}`,
+              teamId,
+              projectId,
+              day,
+              storagePath,
+              downloadUrl,
+              caption: caption || `Day ${day} Progress Screenshot`,
+              uploaderName: uploaderName || 'Team Member',
+              uploadedAt: new Date().toISOString().split('T')[0]
+            };
+
+            const scrColRef = collection(db, 'teams', teamId, 'screenshots');
+            await addDoc(scrColRef, {
+              ...metadata,
+              createdAt: serverTimestamp()
+            });
+
+            onProgress(100);
+            resolve(metadata);
+          } catch (err) {
+            reject(new Error('Upload completed but failed to save metadata. Please try again.'));
+          }
+        }
+      );
+    } catch (err) {
+      reject(new Error('Could not initiate upload. Please try again.'));
+    }
+  });
+};
+
+// LEGACY FALLBACK FOR SCREENSHOT UPLOAD
 export const uploadScreenshotToFirebase = async (
   teamId: string,
   projectId: string,
@@ -181,31 +251,7 @@ export const uploadScreenshotToFirebase = async (
   uploaderName: string
 ): Promise<ScreenshotMetadata | null> => {
   try {
-    const storagePath = `teams/${teamId}/day-${day}/${Date.now()}_${file.name}`;
-    const storageRef = ref(storage, storagePath);
-
-    const uploadResult = await uploadBytes(storageRef, file);
-    const downloadUrl = await getDownloadURL(uploadResult.ref);
-
-    const metadata: ScreenshotMetadata = {
-      id: `scr-${Date.now()}`,
-      teamId,
-      projectId,
-      day,
-      storagePath,
-      downloadUrl,
-      caption: caption || `Day ${day} Progress Screenshot`,
-      uploaderName: uploaderName || 'Team Member',
-      uploadedAt: new Date().toISOString().split('T')[0]
-    };
-
-    const scrColRef = collection(db, 'teams', teamId, 'screenshots');
-    await addDoc(scrColRef, {
-      ...metadata,
-      createdAt: serverTimestamp()
-    });
-
-    return metadata;
+    return await uploadScreenshotResumable(teamId, projectId, day, file, caption, uploaderName, () => {});
   } catch (error) {
     console.error('Firebase Storage upload failed:', error);
     return null;
@@ -223,6 +269,72 @@ export const fetchTeamScreenshots = async (teamId: string): Promise<ScreenshotMe
   } catch (e) {
     return [];
   }
+};
+
+// PERSISTENT PROJECT NOTES / JOURNAL IN FIRESTORE
+export const saveTeamNotes = async (teamId: string, dayKey: string, content: string) => {
+  try {
+    const noteRef = doc(db, 'teamNotes', teamId);
+    await setDoc(
+      noteRef,
+      {
+        [dayKey]: content,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.error('Error saving team notes:', error);
+  }
+};
+
+export const fetchTeamNotes = async (teamId: string): Promise<Record<string, string>> => {
+  try {
+    const noteRef = doc(db, 'teamNotes', teamId);
+    const docSnap = await getDoc(noteRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const notes: Record<string, string> = {};
+      Object.keys(data).forEach(key => {
+        if (typeof data[key] === 'string') {
+          notes[key] = data[key];
+        }
+      });
+      return notes;
+    }
+    return {};
+  } catch (error) {
+    console.error('Error fetching team notes:', error);
+    return {};
+  }
+};
+
+export const subscribeToTeamNotes = (
+  teamId: string,
+  callback: (notes: Record<string, string>) => void
+) => {
+  const noteRef = doc(db, 'teamNotes', teamId);
+  return onSnapshot(
+    noteRef,
+    docSnap => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const notes: Record<string, string> = {};
+        Object.keys(data).forEach(key => {
+          if (typeof data[key] === 'string') {
+            notes[key] = data[key];
+          }
+        });
+        callback(notes);
+      } else {
+        callback({});
+      }
+    },
+    err => {
+      console.warn('Notes snapshot subscription error:', err);
+      callback({});
+    }
+  );
 };
 
 // ADMIN FIREBASE AUTH
@@ -273,3 +385,4 @@ export const fetchAllTeamsForAdmin = async (): Promise<TeamDocument[]> => {
     return [];
   }
 };
+

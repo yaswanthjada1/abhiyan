@@ -1,22 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProjectContext } from '../context/ProjectContext';
+import { ProjectNotes } from '../components/ProjectNotes';
+import { ScreenshotUploadModal } from '../components/ScreenshotUploadModal';
 import {
   LayoutDashboard,
   CheckCircle2,
   Camera,
-  Terminal,
-  Layers,
-  Upload,
   Search,
   Check,
   Copy,
-  Plus,
   Users,
   Calendar,
-  AlertTriangle,
-  FileText,
-  X
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  AlertCircle,
+  HelpCircle,
+  Code
 } from 'lucide-react';
+import { ScreenshotMetadata } from '../types/project';
 
 export const MyProjectPage: React.FC = () => {
   const {
@@ -25,21 +28,22 @@ export const MyProjectPage: React.FC = () => {
     activeProject,
     accessProjectByReferenceId,
     toggleTaskCompletion,
-    uploadScreenshot,
     teamScreenshots
   } = useProjectContext();
 
   const [inputRefId, setInputRefId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedDayView, setSelectedDayView] = useState<number>(1);
+  const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 1024);
 
-  // Upload screenshot modal state
-  const [showUpload, setShowUpload] = useState(false);
-  const [uploadDay, setUploadDay] = useState(1);
-  const [uploadCaption, setUploadCaption] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-
-  const [selectedDayView, setSelectedDayView] = useState(1);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleAccessSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,27 +54,31 @@ export const MyProjectPage: React.FC = () => {
     setLoading(false);
   };
 
-  const handleScreenshotSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFile) return;
-
-    setUploading(true);
-    await uploadScreenshot(uploadDay, selectedFile, uploadCaption);
-    setUploading(false);
-    setSelectedFile(null);
-    setUploadCaption('');
-    setShowUpload(false);
+  const handleCopyPrompt = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedPromptId(id);
+    setTimeout(() => setCopiedPromptId(null), 2000);
   };
 
-  // If no active team loaded, show Access Reference ID form
+  // Access check fallback
   if (!activeTeam || !activeProject) {
     return (
       <div style={{ maxWidth: '500px', margin: '3rem auto', textAlign: 'center' }}>
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '2rem', boxShadow: 'var(--shadow-sm)' }}>
-          <LayoutDashboard size={40} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.35rem' }}>Access Your Project Workspace</h1>
+        <div
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '2rem',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+        >
+          <LayoutDashboard size={44} color="var(--primary)" style={{ marginBottom: '1rem' }} />
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.35rem' }}>
+            Access Student Workspace
+          </h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Enter your Project Reference ID received during team selection.
+            Enter your Project Reference ID (e.g. MMH-A1-X7K92) to open your team workspace.
           </p>
 
           <form onSubmit={handleAccessSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -79,7 +87,7 @@ export const MyProjectPage: React.FC = () => {
               required
               placeholder="e.g. MMH-A1-X7K92"
               value={inputRefId}
-              onChange={e => setInputRefId(e.target.value)}
+              onChange={(e) => setInputRefId(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.75rem',
@@ -93,7 +101,12 @@ export const MyProjectPage: React.FC = () => {
               }}
             />
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ justifyContent: 'center', padding: '0.75rem', minHeight: '44px' }}>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading}
+              style={{ justifyContent: 'center', padding: '0.75rem', minHeight: '44px', fontWeight: 700 }}
+            >
               <Search size={16} /> {loading ? 'Validating...' : 'Open Project Workspace'}
             </button>
           </form>
@@ -103,219 +116,449 @@ export const MyProjectPage: React.FC = () => {
   }
 
   const guide = activeProject.projectGuide;
+  const days = [
+    { num: 1, title: 'SETUP', obj: guide?.day1 },
+    { num: 2, title: 'AI VIBE CODE', obj: guide?.day2 },
+    { num: 3, title: 'CUSTOMISE', obj: guide?.day3 },
+    { num: 4, title: 'DOCUMENT', obj: guide?.day4 },
+    { num: 5, title: 'DEMO', obj: guide?.day5 }
+  ];
 
-  const currentDayGuide = guide ? (
-    selectedDayView === 1 ? guide.day1 :
-    selectedDayView === 2 ? guide.day2 :
-    selectedDayView === 3 ? guide.day3 :
-    selectedDayView === 4 ? guide.day4 : guide.day5
-  ) : null;
+  const currentDayGuide = days.find((d) => d.num === selectedDayView)?.obj || guide?.day1;
+  const currentDayScreenshots = (teamScreenshots || []).filter((s) => s.day === selectedDayView);
 
   return (
-    <div>
-      {/* Workspace Header */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
-              <span className="badge-code">{activeProject.projectCode}</span>
-              <span className="badge badge-category">{activeProject.category}</span>
-              <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>
-                REF: {activeTeam.referenceId}
-              </span>
-            </div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0.2rem 0' }}>{activeTeam.teamName}</h1>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              Project: <strong>{activeProject.title}</strong>
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>
-              Overall Progress: {activeTeam.progress || 0}% Complete
+    <div style={{ paddingBottom: '3rem' }}>
+      {/* Workspace Top Bar */}
+      <div
+        style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1.25rem 1.5rem',
+          marginBottom: '1.5rem',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem'
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <span className="badge-code">{activeProject.projectCode}</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              Ref: {activeTeam.referenceId}
             </span>
-            <div className="progress-bar-container" style={{ width: '180px' }}>
-              <div className="progress-bar-fill" style={{ width: `${activeTeam.progress || 0}%` }} />
-            </div>
+          </div>
+          <h1 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '0.2rem 0' }}>
+            {activeProject.title} — {activeTeam.teamName}
+          </h1>
+          <div style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <span>Leader: <strong>{activeTeam.leader.name}</strong></span>
+            <span>Members: <strong>{activeTeam.members.length + 1}</strong></span>
           </div>
         </div>
 
-        {/* Leader & Members Summary */}
-        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem', marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.825rem' }}>
-          <div>
-            <span style={{ color: 'var(--text-muted)' }}>Leader: </span>
-            <strong>{activeTeam.leader.name}</strong> ({activeTeam.leader.rollNumber})
+        {/* Progress & Upload Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              OVERALL PROGRESS
+            </div>
+            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary)' }}>
+              {activeTeam.progress}%
+            </div>
           </div>
-          <div>
-            <span style={{ color: 'var(--text-muted)' }}>Members: </span>
-            <strong>{(activeTeam.members?.length || 0) + 1} Total</strong>
-          </div>
+
+          <button
+            className="btn-primary"
+            onClick={() => setShowUploadModal(true)}
+            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 700, gap: '0.4rem' }}
+          >
+            <Camera size={16} /> Upload Evidence
+          </button>
         </div>
       </div>
 
-      {/* 5-Day Workspace Layout */}
-      <div className="responsive-two-col" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-        {/* Left: 5-Day Tasks Checklist */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Day Navigation Tabs */}
-          <div style={{ display: 'flex', gap: '0.4rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', overflowX: 'auto' }}>
-            {[1, 2, 3, 4, 5].map(dNum => (
-              <button
-                key={dNum}
-                onClick={() => setSelectedDayView(dNum)}
-                className={`tab-button ${selectedDayView === dNum ? 'active' : ''}`}
-                style={{ padding: '0.4rem 0.75rem', fontSize: '0.825rem' }}
-              >
-                Day {dNum} — {dNum === 1 ? 'SETUP' : dNum === 2 ? 'AI VIBE CODE' : dNum === 3 ? 'CUSTOMISE' : dNum === 4 ? 'DOCUMENT' : 'DEMO'}
-              </button>
-            ))}
-          </div>
+      {/* 5-DAY NAVIGATION TABS */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          overflowX: 'auto',
+          width: '100%',
+          paddingBottom: '0.35rem',
+          marginBottom: '1.5rem',
+          scrollbarWidth: 'thin',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
+        {days.map((d) => {
+          const isActive = selectedDayView === d.num;
+          return (
+            <button
+              key={d.num}
+              onClick={() => setSelectedDayView(d.num)}
+              style={{
+                flex: '1 0 110px',
+                minWidth: '110px',
+                background: isActive ? 'var(--primary)' : 'var(--bg-card)',
+                color: isActive ? '#ffffff' : 'var(--text-color)',
+                border: '1px solid ' + (isActive ? 'var(--primary)' : 'var(--border-color)'),
+                borderRadius: 'var(--radius-md)',
+                padding: '0.75rem 0.5rem',
+                textAlign: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, opacity: isActive ? 0.9 : 0.6 }}>
+                DAY {d.num}
+              </div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, marginTop: '0.1rem', whiteSpace: 'nowrap' }}>
+                {d.title}
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
+      {/* MAIN TWO-COLUMN WORKSPACE (Desktop: Left=Content, Right=Notes / Mobile: Stacked) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 340px',
+          gap: '1.5rem',
+          alignItems: 'start'
+        }}
+      >
+        {/* LEFT COLUMN: DAY CONTENT & TASKS & PROMPTS */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Day Header Card */}
           {currentDayGuide && (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.25rem' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.25rem' }}>
-                Day {currentDayGuide.day} — {currentDayGuide.title}
-              </h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+            <div
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1.25rem',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>
+                DAY {currentDayGuide.day} OBJECTIVE — {currentDayGuide.title}
+              </div>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0.3rem 0 0.5rem 0' }}>
                 {currentDayGuide.goal}
+              </h2>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                {currentDayGuide.objective}
               </p>
+            </div>
+          )}
 
-              {/* Day 3 Mandatory Warning */}
-              {selectedDayView === 3 && (
-                <div style={{ background: 'var(--warning-bg)', border: '1px solid var(--warning)', borderRadius: 'var(--radius-md)', padding: '0.85rem', marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.825rem', color: 'var(--text-primary)' }}>
-                  <AlertTriangle size={18} color="var(--warning)" style={{ flexShrink: 0 }} />
-                  <span>Verify every mathematical calculation manually on paper or CAS before customizing code!</span>
-                </div>
-              )}
+          {/* STEP-BY-STEP TASKS WITH DETAILED GUIDE */}
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.25rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800 }}>
+                Day {selectedDayView} Task Checklist
+              </h3>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Click task to expand step-by-step instructions
+              </span>
+            </div>
 
-              {/* Tasks List with Checkboxes */}
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>Tasks Checklist</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                {currentDayGuide.tasks.map(task => {
-                  const isDone = !!activeTeam.completedTasks?.[task.id];
-                  return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {currentDayGuide?.tasks.map((task) => {
+                const isChecked = !!activeTeam.completedTasks[task.id];
+                const isExpanded = expandedTaskId === task.id;
+
+                return (
+                  <div
+                    key={task.id}
+                    style={{
+                      border: '1px solid ' + (isChecked ? 'var(--success-border, var(--border-color))' : 'var(--border-color)'),
+                      borderRadius: 'var(--radius-md)',
+                      background: isChecked ? 'rgba(16, 185, 129, 0.03)' : 'var(--bg-subtle)',
+                      overflow: 'hidden',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {/* Task Title Row */}
                     <div
-                      key={task.id}
-                      onClick={() => toggleTaskCompletion(selectedDayView, task.id)}
                       style={{
+                        padding: '0.85rem 1rem',
                         display: 'flex',
                         alignItems: 'flex-start',
-                        gap: '0.65rem',
-                        padding: '0.75rem',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid',
-                        borderColor: isDone ? 'var(--success)' : 'var(--border-color)',
-                        background: isDone ? 'var(--success-bg)' : 'var(--bg-subtle)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
+                        gap: '0.75rem',
+                        cursor: 'pointer'
                       }}
+                      onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}
                     >
                       <input
                         type="checkbox"
-                        checked={isDone}
-                        onChange={() => {}}
-                        style={{ marginTop: '3px', width: '18px', height: '18px', cursor: 'pointer' }}
+                        checked={isChecked}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          toggleTaskCompletion(selectedDayView, task.id);
+                        }}
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          marginTop: '2px',
+                          cursor: 'pointer',
+                          accentColor: 'var(--primary)'
+                        }}
                       />
+
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 700, textDecoration: isDone ? 'line-through' : 'none' }}>
+                        <div
+                          style={{
+                            fontSize: '0.9rem',
+                            fontWeight: 700,
+                            textDecoration: isChecked ? 'line-through' : 'none',
+                            color: isChecked ? 'var(--text-muted)' : 'var(--text-color)'
+                          }}
+                        >
                           {task.title}
                         </div>
-                        <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                           {task.description}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Right: Screenshots & Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Camera size={18} /> Proof Screenshots
+                      <button
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          padding: '0.2rem'
+                        }}
+                      >
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </button>
+                    </div>
+
+                    {/* Task Detailed Breakdown Panel */}
+                    {isExpanded && (
+                      <div
+                        style={{
+                          padding: '0.85rem 1rem 1rem 2.5rem',
+                          borderTop: '1px solid var(--border-color)',
+                          background: 'var(--bg-card)',
+                          fontSize: '0.825rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.6rem'
+                        }}
+                      >
+                        {task.why && (
+                          <div>
+                            <strong style={{ color: 'var(--primary)' }}>WHY YOU ARE DOING IT:</strong>
+                            <p style={{ margin: '0.1rem 0 0 0', color: 'var(--text-secondary)' }}>{task.why}</p>
+                          </div>
+                        )}
+
+                        {task.how && (
+                          <div>
+                            <strong style={{ color: 'var(--primary)' }}>HOW TO DO IT:</strong>
+                            <p style={{ margin: '0.1rem 0 0 0', color: 'var(--text-secondary)' }}>{task.how}</p>
+                          </div>
+                        )}
+
+                        <div>
+                          <strong style={{ color: 'var(--success)' }}>EXPECTED RESULT:</strong>
+                          <p style={{ margin: '0.1rem 0 0 0', color: 'var(--text-secondary)' }}>{task.expectedOutput}</p>
+                        </div>
+
+                        {task.commonMistakes && (
+                          <div style={{ background: 'rgba(239, 68, 68, 0.05)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #ef4444' }}>
+                            <strong style={{ color: '#ef4444' }}>COMMON MISTAKE TO AVOID:</strong>
+                            <p style={{ margin: '0.1rem 0 0 0', color: 'var(--text-secondary)' }}>{task.commonMistakes}</p>
+                          </div>
+                        )}
+
+                        {task.screenshotSuggestion && (
+                          <div style={{ background: 'rgba(79, 70, 229, 0.05)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                              <strong style={{ color: 'var(--primary)' }}>EVIDENCE TO CAPTURE:</strong>
+                              <p style={{ margin: '0.1rem 0 0 0', color: 'var(--text-secondary)' }}>{task.screenshotSuggestion}</p>
+                            </div>
+                            <button
+                              className="btn-secondary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowUploadModal(true);
+                              }}
+                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+                            >
+                              <Camera size={12} /> Upload Screenshot
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* AI PROMPTS SECTION (4-6 REALISTIC, PRACTICAL PROMPTS) */}
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.25rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <Sparkles size={20} color="var(--primary)" />
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800 }}>
+                Practical AI Coding Prompts ({activeProject.prompts.length})
               </h3>
-              <button className="btn-primary" onClick={() => setShowUpload(true)} style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem', minHeight: '44px' }}>
-                <Plus size={14} /> Upload
+            </div>
+
+            <p style={{ margin: '0 0 1rem 0', fontSize: '0.825rem', color: 'var(--text-muted)' }}>
+              Copy these realistic, project-specific prompts into ChatGPT, Claude, or Gemini while building.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {activeProject.prompts.map((pr) => (
+                <div
+                  key={pr.id}
+                  style={{
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.6rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-color)' }}>
+                      {pr.title}
+                    </div>
+                    <span className="badge badge-category" style={{ fontSize: '0.7rem' }}>
+                      {pr.category}
+                    </span>
+                  </div>
+
+                  <pre
+                    style={{
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.75rem',
+                      fontSize: '0.8rem',
+                      fontFamily: 'var(--font-mono)',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      margin: 0,
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      color: 'var(--text-secondary)'
+                    }}
+                  >
+                    {pr.promptText}
+                  </pre>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleCopyPrompt(pr.id, pr.promptText)}
+                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.775rem' }}
+                    >
+                      {copiedPromptId === pr.id ? (
+                        <>
+                          <Check size={14} color="var(--success)" /> Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} /> Copy Prompt
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SCREENSHOTS / EVIDENCE FOR THIS DAY */}
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.25rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ImageIcon size={20} color="var(--primary)" />
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800 }}>
+                  Day {selectedDayView} Screenshots & Evidence ({currentDayScreenshots.length})
+                </h3>
+              </div>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowUploadModal(true)}
+                style={{ padding: '0.35rem 0.65rem', fontSize: '0.775rem' }}
+              >
+                + Add Evidence
               </button>
             </div>
 
-            {/* Upload Modal */}
-            {showUpload && (
-              <div className="modal-overlay" onClick={() => setShowUpload(false)}>
-                <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', width: '90%' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Upload Proof Screenshot</h3>
-                    <button className="btn-secondary" onClick={() => setShowUpload(false)} style={{ padding: '0.25rem 0.5rem', minHeight: '36px' }}>
-                      <X size={16} />
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleScreenshotSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.2rem' }}>Select Image File *</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        required
-                        onChange={e => setSelectedFile(e.target.files ? e.target.files[0] : null)}
-                        style={{ width: '100%', fontSize: '0.85rem', minHeight: '44px' }}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.2rem' }}>Roadmap Day</label>
-                      <select
-                        value={uploadDay}
-                        onChange={e => setUploadDay(Number(e.target.value))}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', minHeight: '44px' }}
-                      >
-                        <option value={1}>Day 1 — SETUP</option>
-                        <option value={2}>Day 2 — AI VIBE CODE</option>
-                        <option value={3}>Day 3 — CUSTOMISE</option>
-                        <option value={4}>Day 4 — DOCUMENT</option>
-                        <option value={5}>Day 5 — DEMO</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.2rem' }}>Caption / Notes</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Gauss elimination code executed"
-                        value={uploadCaption}
-                        onChange={e => setUploadCaption(e.target.value)}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.85rem', minHeight: '44px' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
-                      <button type="button" className="btn-secondary" onClick={() => setShowUpload(false)} style={{ minHeight: '44px' }}>
-                        Cancel
-                      </button>
-                      <button type="submit" className="btn-primary" disabled={uploading} style={{ minHeight: '44px' }}>
-                        {uploading ? 'Uploading...' : 'Save Screenshot'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
+            {currentDayScreenshots.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                No screenshots uploaded for Day {selectedDayView} yet. Upload evidence of your working UI or math verification.
               </div>
-            )}
-
-            {/* Screenshots list */}
-            {teamScreenshots.length === 0 ? (
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem 0' }}>No screenshots uploaded yet.</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {teamScreenshots.map(scr => (
-                  <div key={scr.id} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-                    <img src={scr.downloadUrl} alt={scr.caption} style={{ width: '100%', height: '120px', objectFit: 'cover' }} />
-                    <div style={{ padding: '0.5rem', fontSize: '0.78rem' }}>
-                      <strong>Day {scr.day}:</strong> {scr.caption}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                {currentDayScreenshots.map((scr) => (
+                  <div
+                    key={scr.id}
+                    style={{
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-md)',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <a href={scr.downloadUrl} target="_blank" rel="noreferrer">
+                      <img
+                        src={scr.downloadUrl}
+                        alt={scr.caption}
+                        style={{
+                          width: '100%',
+                          height: '140px',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
+                      />
+                    </a>
+                    <div style={{ padding: '0.65rem', fontSize: '0.775rem' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-color)' }}>{scr.caption}</div>
+                      <div style={{ color: 'var(--text-muted)', marginTop: '0.2rem', fontSize: '0.7rem' }}>
+                        By {scr.uploaderName || 'Team Member'} on {scr.uploadedAt}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -323,7 +566,23 @@ export const MyProjectPage: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* RIGHT COLUMN: PROJECT NOTES / JOURNAL */}
+        <div>
+          <ProjectNotes teamId={activeTeam.teamId} currentDay={selectedDayView} isMobileView={isMobile} />
+        </div>
       </div>
+
+      {/* SCREENSHOT UPLOAD MODAL */}
+      {showUploadModal && (
+        <ScreenshotUploadModal
+          teamId={activeTeam.teamId}
+          projectId={activeProject.projectCode}
+          defaultDay={selectedDayView}
+          onUploadComplete={() => accessProjectByReferenceId(activeTeam.referenceId)}
+          onClose={() => setShowUploadModal(false)}
+        />
+      )}
     </div>
   );
 };

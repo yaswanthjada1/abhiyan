@@ -2,16 +2,17 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // Team screenshots: public read and upload for images under 10MB
-    match /teams/{teamId}/screenshots/{allPaths=**} {
+    // Team screenshots: public read and write access for images under 10MB
+    match /teams/{teamId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.resource.size < 10 * 1024 * 1024 
                    && request.resource.contentType.matches('image/.*');
     }
     
-    // Admin full access
+    // Public read fallback for all objects
     match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }

@@ -1,8 +1,8 @@
 import { Project, ProjectGuide, DayGuide, VivaQuestion, DocumentationSection, ProjectPrompt } from '../types/project';
 
 /**
- * Generates a complete, project-specific 5-Day Roadmap, AI Prompts, Documentation Guide,
- * 10 Viva Questions, and Final Demo Checklist for any given project.
+ * Generates a complete, project-specific 5-Day Roadmap, 6 Realistic AI Prompts,
+ * Documentation Guide, 10 Viva Questions, and Final Demo Checklist for any given project.
  */
 export function generateFiveDayGuideForProject(project: Project): ProjectGuide {
   const pCode = project.projectCode;
@@ -14,153 +14,245 @@ export function generateFiveDayGuideForProject(project: Project): ProjectGuide {
   const pTechBackend = project.recommendedTechStack.backend;
   const pTechMath = project.recommendedTechStack.math;
 
+  // 6 REALISTIC, HIGH-QUALITY, PROJECT-SPECIFIC AI PROMPTS
+  const projectPrompts: ProjectPrompt[] = [
+    {
+      id: `${pCode}-prompt-1`,
+      title: `Prompt 1 — Build the First Version (MVP)`,
+      category: `Architecture`,
+      promptText: `You are helping me build a college mini-project titled "${pTitle}".
+
+Problem Statement:
+"${pProblem}"
+
+Mathematics:
+${pMath}
+
+Tech Stack:
+Use ${pTechFrontend} with JavaScript/TypeScript and ${pTechMath}.
+
+Build a simple working MVP application that allows the user to enter the required problem parameters, constructs the mathematical model, solves it using ${pMath}, and displays the solution.
+
+Do not invent mathematical assumptions. Clearly identify any assumptions you need me to provide.
+
+Start by creating the application structure, input form, and core calculation module.`
+    },
+    {
+      id: `${pCode}-prompt-2`,
+      title: `Prompt 2 — Fix & Debug Code / Math`,
+      category: `Debugging`,
+      promptText: `I have implemented the core logic for "${pTitle}".
+
+Mathematical concept:
+${pMath}
+
+Problem statement context:
+"${pProblem}"
+
+Here is my current code:
+[paste your code here]
+
+Here is the error or incorrect output:
+[paste error or wrong numerical result]
+
+Find the actual bug in my code or mathematical implementation.
+Do not rewrite the entire project unnecessarily.
+Explain what is wrong and provide the smallest reliable fix.
+Verify that the ${pMath} calculations remain mathematically accurate after the fix.`
+    },
+    {
+      id: `${pCode}-prompt-3`,
+      title: `Prompt 3 — Customise & Polish UI`,
+      category: `UI & Visualization`,
+      promptText: `The MVP for "${pTitle}" is now working. Now help me customise and polish it.
+
+Domain application:
+${pRealWorld}
+
+Current features:
+- Parameters input form
+- Math calculation engine (${pMath})
+- Basic results output
+
+I want to improve:
+1. Domain-authentic labels and units based on ${pRealWorld}.
+2. Step-by-step mathematical breakdown showing intermediate matrix/formula operations.
+3. Interactive visual chart using ${project.recommendedTechStack.charts}.
+
+Keep the mathematical calculation unchanged unless there is a verified error. Make the result easy for evaluators to understand.`
+    },
+    {
+      id: `${pCode}-prompt-4`,
+      title: `Prompt 4 — Mathematical Verification`,
+      category: `Mathematics`,
+      promptText: `Act as a mathematical reviewer for my mini-project "${pTitle}".
+
+Mathematical Model:
+Using ${pMath} to solve: "${pProblem}".
+
+Here is my mathematical implementation:
+[paste your calculation function or matrix code here]
+
+Verify:
+1. Variable definitions & constraints
+2. Equations and formula mapping
+3. Matrix / vector construction
+4. Algorithm implementation (${pMath})
+5. Calculated outputs against benchmark values
+6. Edge cases (zeros, boundary conditions, singular inputs)
+
+Do not assume my implementation is correct. Point out every mathematical mistake or precision oversight you find.`
+    },
+    {
+      id: `${pCode}-prompt-5`,
+      title: `Prompt 5 — Generate Documentation`,
+      category: `Documentation`,
+      promptText: `I need to document my project "${pTitle}".
+
+Based ONLY on my actual implementation below:
+[paste code or describe working features]
+
+Help me write:
+1. Title & Abstract (150 words)
+2. Problem Statement & Real-World Context (${pRealWorld})
+3. Mathematical Foundation (${pMath})
+4. Algorithm Pseudocode
+5. System Architecture
+6. Test Cases & Verification Results
+7. Limitations & Future Scope
+
+Do not invent features or results that are not present in my actual project.`
+    },
+    {
+      id: `${pCode}-prompt-6`,
+      title: `Prompt 6 — Demo Scenario & Viva Preparation`,
+      category: `Viva`,
+      promptText: `I am presenting my mini-project "${pTitle}" to evaluators.
+
+Project Details:
+- Problem: "${pProblem}"
+- Math: ${pMath}
+- Real-World: ${pRealWorld}
+
+Based on my project:
+1. Provide a 3-5 minute live demonstration script (step-by-step).
+2. The exact mathematical explanation I should give while presenting.
+3. 10 likely viva questions evaluators will ask regarding ${pMath} and my implementation.
+4. Concise, accurate answers for each viva question.
+
+Keep answers realistic and grounded in my actual project.`
+    }
+  ];
+
   // 1. DAY 1 — SETUP
   const day1: DayGuide = {
     day: 1,
     title: 'SETUP',
-    goal: `Understand ${pTitle}, set up development environment, and prepare inputs.`,
-    objective: `Deconstruct the mathematical problem, establish system requirements, define variables, and set up local code structure for ${pTitle}.`,
+    goal: `Understand ${pTitle}, set up development environment, and formulate mathematical model.`,
+    objective: `Deconstruct the problem statement, define mathematical variables, and establish the local codebase.`,
+    prompts: [projectPrompts[0]],
     tasks: [
       {
         id: `${pCode}-d1-t1`,
-        title: `Analyze ${pTitle} Problem Statement`,
-        description: `Read and breakdown the problem statement: "${pProblem}". Identify input variables, target outputs, and constraints.`,
-        expectedOutput: `Written problem decomposition document detailing input data types, constraints, and required calculations.`
+        title: `Analyze Problem Statement & Define Scope`,
+        description: `Read and decompose the problem statement: "${pProblem}".`,
+        why: `You cannot code or build a mathematical model without knowing exact inputs, constraints, and target outputs.`,
+        how: `List all given values, unknown variables, unit measurements, and constraints on paper or markdown.`,
+        expectedOutput: `Written problem analysis document detailing inputs, unknown variables, and target outputs.`,
+        commonMistakes: `Skipping variable definitions and jumping straight into writing random code.`,
+        screenshotSuggestion: `Capture your written problem decomposition or initial notes.`
       },
       {
         id: `${pCode}-d1-t2`,
         title: `Define Mathematical Model & Equations`,
-        description: `Formulate the mathematical model using ${pMath}. Map real-world variables to mathematical matrices, vectors, or equations.`,
-        expectedOutput: `Formulated mathematical equations and matrices (e.g. AX = B or eigenvalue system) on paper or markdown.`
+        description: `Formulate equations and matrices using ${pMath}.`,
+        why: `The real-world problem needs to be converted into mathematical structures before coding algorithm logic.`,
+        how: `Map physical quantities to algebraic variables (e.g. x1, x2) and express constraints as matrix AX = B or equations.`,
+        expectedOutput: `Formulated mathematical equations and matrix structure (AX = B) verified on paper.`,
+        commonMistakes: `Mismatched dimensions or misassigning coefficients in matrix formulation.`,
+        screenshotSuggestion: `Capture the mathematical model derivation on paper or notebook.`
       },
       {
         id: `${pCode}-d1-t3`,
-        title: `Set Up Local Development Environment`,
-        description: `Initialize project repository using ${pTechFrontend} / ${pTechBackend}. Install required mathematical libraries (${pTechMath}).`,
-        expectedOutput: `Clean project template running locally with verified library imports.`
+        title: `Initialize Development Workspace`,
+        description: `Create project repository and install required mathematical libraries (${pTechMath}).`,
+        why: `Setting up a clean folder structure early avoids import and build errors during development.`,
+        how: `Create project root, set up ${pTechFrontend} template, and verify library installation.`,
+        expectedOutput: `Working local development environment loading without console errors.`,
+        commonMistakes: `Installing mismatched library versions or missing configuration files.`,
+        screenshotSuggestion: `Capture terminal output showing successful workspace setup.`
       },
       {
         id: `${pCode}-d1-t4`,
-        title: `Prepare Real-World Test Data`,
-        description: `Create 3 distinct sample datasets (small, realistic, and edge case) inspired by ${pRealWorld}.`,
-        expectedOutput: `JSON or CSV sample dataset files ready for algorithm consumption.`
-      },
-      {
-        id: `${pCode}-d1-t5`,
-        title: `Define Application Architecture`,
-        description: `Design data flow architecture connecting user inputs to ${pMath} calculations and visual dashboard outputs.`,
-        expectedOutput: `System architecture diagram detailing UI components, math engine, and result display.`
+        title: `Prepare Sample Benchmark Test Datasets`,
+        description: `Create 3 distinct sample datasets (small, realistic, boundary case) based on ${pRealWorld}.`,
+        why: `Benchmark datasets are necessary to test if your math calculations produce accurate results.`,
+        how: `Construct JSON/JS objects representing sample input parameters and calculate expected outputs manually.`,
+        expectedOutput: `3 Verified benchmark test datasets with known manual results.`,
+        commonMistakes: `Using arbitrary numbers that produce unsolvable or negative real-world values.`,
+        screenshotSuggestion: `Capture your benchmark dataset files or data table.`
       }
     ],
     expectedOutput: [
       `Deconstructed mathematical model for ${pTitle}`,
-      `Configured development workspace with ${pTechMath}`,
-      `3 Verified sample datasets based on ${pRealWorld}`,
-      `Application architecture specification`
+      `Configured local workspace with ${pTechMath}`,
+      `3 Verified benchmark test datasets`
     ]
   };
 
   // 2. DAY 2 — AI VIBE CODE
-  const day2Prompts: ProjectPrompt[] = [
-    {
-      id: `${pCode}-prompt-1`,
-      title: `Prompt 1 — Project Architecture & Skeleton`,
-      category: `Architecture`,
-      promptText: `You are an expert full-stack developer assisting with the college mini project "${pTitle}".
-Problem Statement: "${pProblem}"
-Mathematical Concept: ${pMath}
-Tech Stack: ${pTechFrontend}, ${pTechMath}
-
-Generate a clean modular project architecture. Provide index.html, main application logic, and styling structure. Include clear placeholder sections for user input forms, calculation engine, step-by-step math solver, and interactive visualization dashboard.`
-    },
-    {
-      id: `${pCode}-prompt-2`,
-      title: `Prompt 2 — Core Mathematical Computation Engine`,
-      category: `Core Logic`,
-      promptText: `Write a robust JavaScript/TypeScript module that implements the exact mathematics for "${pTitle}" using ${pMath}.
-Specific problem requirements:
-- Input parameters derived from: "${pProblem}"
-- Implement algorithm to compute: ${pMath}
-- Return step-by-step intermediate matrices, vectors, determinant/eigenvalue calculations, and final output values.
-- Handle zero divisions, singular matrices, or invalid inputs gracefully with informative error messages.`
-    },
-    {
-      id: `${pCode}-prompt-3`,
-      title: `Prompt 3 — Interactive UI & Dashboard Components`,
-      category: `UI & Visualization`,
-      promptText: `Create modern, accessible, professional UI components for "${pTitle}".
-Include:
-1. Dynamic input controls (sliders, matrix grids, data table inputs).
-2. "Run Calculation" button with instant validation.
-3. Results summary section highlighting key computed metrics and real-world interpretation (${pRealWorld}).
-4. Step-by-step mathematical breakdown showing every intermediate row operation, vector transformation, or formula evaluation.`
-    },
-    {
-      id: `${pCode}-prompt-4`,
-      title: `Prompt 4 — Debugging & Edge-Case Validation`,
-      category: `Debugging`,
-      promptText: `Help me debug and test the core logic for "${pTitle}".
-Check for edge cases such as:
-1. Matrix dimension mismatches or invalid coefficients.
-2. Boundary values (zeros, negative inputs, extreme values).
-3. Floating point precision rounding for ${pMath}.
-Provide a self-contained diagnostic function that logs raw calculation steps and highlights any discrepancy between expected and calculated outputs.`
-    },
-    {
-      id: `${pCode}-prompt-5`,
-      title: `Prompt 5 — Comprehensive Test Runner & Verification`,
-      category: `Testing`,
-      promptText: `Generate 3 unit test cases for "${pTitle}" using ${pMath}:
-Case 1: Standard benchmark problem with known exact numerical answer.
-Case 2: Minimal non-trivial scenario.
-Case 3: Edge case (boundary condition).
-Include inline code comments explaining how the mathematical formulas map to each assertion.`
-    }
-  ];
-
   const day2: DayGuide = {
     day: 2,
     title: 'AI VIBE CODE',
     goal: `Generate a functional MVP using project-specific AI prompts.`,
-    objective: `Use structured AI coding prompts to build the core mathematical calculation engine and user interface for ${pTitle}.`,
-    prompts: day2Prompts,
+    objective: `Use structured AI coding prompts to build the core mathematical calculation engine and user interface.`,
+    prompts: [projectPrompts[0], projectPrompts[1]],
     tasks: [
       {
         id: `${pCode}-d2-t1`,
-        title: `Generate Initial Project Skeleton (Prompt 1)`,
-        description: `Execute Prompt 1 to establish the folder layout, HTML structure, and styling base for ${pTitle}.`,
-        expectedOutput: `Base application skeleton loading without browser errors.`
+        title: `Generate Initial MVP Codebase (Prompt 1)`,
+        description: `Use Prompt 1 with your AI assistant to generate application skeleton and input UI.`,
+        why: `AI vibe coding accelerates initial boilerplate setup so you can focus on auditing logic.`,
+        how: `Copy Prompt 1 into AI tool (Claude/Gemini/ChatGPT), save generated HTML/JS files, and test locally.`,
+        expectedOutput: `Functional application shell with input fields and run calculation button.`,
+        commonMistakes: `Accepting AI code without testing whether it actually runs in your browser.`,
+        screenshotSuggestion: `Capture the initial running web interface generated by AI.`
       },
       {
         id: `${pCode}-d2-t2`,
-        title: `Build Core Math Computation Engine (Prompt 2)`,
-        description: `Feed Prompt 2 into AI tool (Claude, Gemini, ChatGPT) to generate algorithms for ${pMath}.`,
-        expectedOutput: `Verified math module returning accurate output for sample data.`
+        title: `Implement Core Math Calculation Engine (Prompt 1 & 2)`,
+        description: `Build and wire the core algorithm module implementing ${pMath}.`,
+        why: `The mathematical algorithm is the heart of your mini-project.`,
+        how: `Write or integrate the solver function, passing user inputs and returning numerical results.`,
+        expectedOutput: `Calculation module returning outputs for test inputs.`,
+        commonMistakes: `Hardcoding result values instead of computing them dynamically from inputs.`,
+        screenshotSuggestion: `Capture browser console or UI showing calculated output.`
       },
       {
         id: `${pCode}-d2-t3`,
-        title: `Develop Interactive Frontend & Dashboard (Prompt 3)`,
-        description: `Implement UI components for data input, calculation triggers, and result rendering.`,
-        expectedOutput: `Interactive web form accepting custom inputs and rendering results.`
+        title: `Connect User Input Form to Math Engine`,
+        description: `Bind UI input fields to the mathematical calculation engine.`,
+        why: `Users must be able to change input parameters and see updated results.`,
+        how: `Attach event listeners to form submit/click buttons to pass inputs to solver and update DOM.`,
+        expectedOutput: `Interactive UI accepting custom inputs and rendering computed output cards.`,
+        commonMistakes: `Passing string inputs instead of parsing numbers (e.g. "5" + "10" = "510").`,
+        screenshotSuggestion: `Capture the UI after submitting custom inputs.`
       },
       {
         id: `${pCode}-d2-t4`,
-        title: `Integrate Core Engine with UI`,
-        description: `Connect input forms to calculation functions and populate result cards.`,
-        expectedOutput: `End-to-end interactive MVP running on local server.`
-      },
-      {
-        id: `${pCode}-d2-t5`,
-        title: `Run Debugging & Edge-Case Pass (Prompt 4)`,
-        description: `Execute Prompt 4 to identify and fix runtime errors or calculation bugs.`,
-        expectedOutput: `Stable MVP passing initial manual test runs.`
+        title: `Debug Runtime Errors & Calculations (Prompt 2)`,
+        description: `Use Prompt 2 to resolve any execution errors or incorrect numerical outputs.`,
+        why: `AI-generated code often has subtle calculation or syntax bugs.`,
+        how: `Feed console error stack traces or wrong outputs to AI with Prompt 2 to get targeted fixes.`,
+        expectedOutput: `Stable MVP running cleanly without console errors.`,
+        commonMistakes: `Blindly re-prompts AI to rewrite the entire project, introducing new bugs.`,
+        screenshotSuggestion: `Capture clean browser developer console showing 0 errors.`
       }
     ],
     expectedOutput: [
       `Working MVP application for ${pTitle}`,
       `Functional ${pMath} computation module`,
-      `Interactive input form and result display`,
-      `Initial AI vibe-coded codebase`
+      `Interactive input form and result display`
     ]
   };
 
@@ -168,45 +260,56 @@ Include inline code comments explaining how the mathematical formulas map to eac
   const day3: DayGuide = {
     day: 3,
     title: 'CUSTOMISE',
-    goal: `Refine, verify mathematics, customize UI, and replace dummy data.`,
-    objective: `CRITICAL STEP: Manually audit and verify all AI-generated code and calculations. Customize UI for ${pTitle} domain specificity.`,
+    goal: `Manually audit mathematics, refine UI for domain specificity, and add step-by-step visual views.`,
+    objective: `CRITICAL STEP: Manually audit AI calculations, replace dummy labels with ${pRealWorld} domain terminology, and add charts.`,
+    prompts: [projectPrompts[2], projectPrompts[3]],
     tasks: [
       {
         id: `${pCode}-d3-t1`,
-        title: `MANUAL MATH AUDIT & VERIFICATION (Mandatory)`,
-        description: `WARNING: Do NOT blindly trust AI code! Calculate ${pMath} manually on paper or using a verified CAS calculator for sample inputs and compare with application output.`,
-        expectedOutput: `100% verified numerical matching between manual calculations and app output.`
+        title: `MANUAL MATH AUDIT & VERIFICATION (Prompt 4)`,
+        description: `Calculate ${pMath} manually on paper for a benchmark test case and compare with app output.`,
+        why: `Evaluators will check your math during viva. AI code frequently makes subtle mathematical errors.`,
+        how: `Solve one sample case step-by-step on paper, run same input in app, and ensure 100% numerical match.`,
+        expectedOutput: `100% verified numerical matching between paper calculation and app output.`,
+        commonMistakes: `Assuming the AI code is correct without performing manual paper verification.`,
+        screenshotSuggestion: `Capture paper calculation side-by-side with app output.`
       },
       {
         id: `${pCode}-d3-t2`,
-        title: `Replace Dummy Data with Real-World Domain Data`,
-        description: `Integrate realistic scenarios from ${pRealWorld}. Update labels, units, and data descriptions.`,
-        expectedOutput: `Domain-authentic data models with accurate units and terminology.`
+        title: `Refine UI with Real-World Domain Terms (Prompt 3)`,
+        description: `Replace generic labels with domain-specific terms from ${pRealWorld}.`,
+        why: `Evaluators want to see domain relevance, not generic "x1, x2, x3" labels everywhere.`,
+        how: `Update input headers, tooltips, and result summary cards to reflect real-world quantities.`,
+        expectedOutput: `Domain-authentic UI tailored for ${pRealWorld}.`,
+        commonMistakes: `Leaving placeholder text like "Enter value 1" or "Test Data".`,
+        screenshotSuggestion: `Capture the customized domain-authentic interface.`
       },
       {
         id: `${pCode}-d3-t3`,
-        title: `Refine Mathematical Output & Step-by-Step View`,
-        description: `Add intermediate calculation steps (e.g., intermediate row operations or matrix factors) to help evaluate project depth during viva.`,
-        expectedOutput: `Step-by-step mathematical breakdown section in UI.`
+        title: `Add Step-by-Step Mathematical Breakdown View`,
+        description: `Render intermediate calculation steps (e.g. intermediate matrices, row operations, or formula steps).`,
+        why: `Showing step-by-step math proves your app executes the true algorithm rather than a black box.`,
+        how: `Store intermediate state during calculation and render a step-by-step breakdown table/card.`,
+        expectedOutput: `Step-by-step mathematical breakdown panel in UI.`,
+        commonMistakes: `Hiding all intermediate steps, making the project look like a simple black-box calculator.`,
+        screenshotSuggestion: `Capture the step-by-step mathematical breakdown section.`
       },
       {
         id: `${pCode}-d3-t4`,
-        title: `Enhance Visualizations & Graphs`,
-        description: `Add interactive chart visualizations (${project.recommendedTechStack.charts}) showing key trends, optimal points, or matrix transformations.`,
-        expectedOutput: `Dynamic interactive charts visualising ${pTitle} outcomes.`
-      },
-      {
-        id: `${pCode}-d3-t5`,
-        title: `Implement Input Validation & Boundary Checks`,
-        description: `Prevent invalid user entries (negative values, blank inputs, incompatible dimensions). Display clear error notifications.`,
-        expectedOutput: `User-friendly validation messages for all input fields.`
+        title: `Implement Interactive Charts & Visualizations`,
+        description: `Add dynamic visual charts using ${project.recommendedTechStack.charts} to graph results.`,
+        why: `Visual charts make results immediately understandable for presentation evaluators.`,
+        how: `Pass computed result arrays to chart components and render trend or comparison graphs.`,
+        expectedOutput: `Interactive chart visualizing key ${pTitle} outcomes.`,
+        commonMistakes: `Using static un-updated chart images instead of live reactive data graphs.`,
+        screenshotSuggestion: `Capture the interactive chart component in your application.`
       }
     ],
     expectedOutput: [
       `Manually verified calculation engine (zero math errors)`,
       `Custom domain UI tailored for ${pRealWorld}`,
       `Step-by-step mathematical breakdown panel`,
-      `Interactive data visualization charts`
+      `Interactive data visualization chart`
     ]
   };
 
@@ -215,44 +318,54 @@ Include inline code comments explaining how the mathematical formulas map to eac
     day: 4,
     title: 'DOCUMENT',
     goal: `Complete project report, documentation checklist, and proof screenshots.`,
-    objective: `Write comprehensive 17-section mini-project report with explicit mathematical modeling for ${pTitle}.`,
+    objective: `Write comprehensive 17-section mini-project report with explicit mathematical modeling.`,
+    prompts: [projectPrompts[4]],
     tasks: [
       {
         id: `${pCode}-d4-t1`,
-        title: `Write Title, Abstract & Introduction`,
-        description: `Draft abstract summarizing ${pTitle}, objectives, and real-world significance (${pRealWorld}).`,
-        expectedOutput: `Sections 1–3 of report complete.`
+        title: `Draft Introduction & Mathematical Theory (Prompt 5)`,
+        description: `Write Sections 1–5 of the project report covering abstract, problem statement, and ${pMath} theory.`,
+        why: `Academic reports require clear theoretical foundation before presenting software results.`,
+        how: `Use Prompt 5 to outline sections based on your actual problem statement and mathematical model.`,
+        expectedOutput: `Sections 1–5 of report complete with mathematical formulas.`,
+        commonMistakes: `Copy-pasting generic internet theory that does not match your specific project code.`,
+        screenshotSuggestion: `Capture your report draft document showing mathematical theory.`
       },
       {
         id: `${pCode}-d4-t2`,
-        title: `Write Mathematical Theory & Model Section`,
-        description: `Explain ${pMath} in detail. Document exact equations, matrix definitions, theorems, and algorithms used.`,
-        expectedOutput: `Complete Section 4 & 5 with LaTeX/formatted mathematical equations.`
+        title: `Document System Architecture & Algorithm Pseudocode`,
+        description: `Detail technology stack, system block diagram, and algorithmic pseudocode.`,
+        why: `Evaluators check pseudocode to verify algorithm clarity and execution flow.`,
+        how: `Write clear pseudocode for your ${pMath} implementation and describe frontend/backend architecture.`,
+        expectedOutput: `Sections 6–9 of report complete with pseudocode and architecture diagrams.`,
+        commonMistakes: `Writing vague pseudocode that omits key mathematical operations.`,
+        screenshotSuggestion: `Capture pseudocode section in report.`
       },
       {
         id: `${pCode}-d4-t3`,
-        title: `Document Methodology, Tech Stack & Architecture`,
-        description: `Detail technology stack (${pTechFrontend}, ${pTechMath}), system architecture, and step-by-step implementation algorithm.`,
-        expectedOutput: `Sections 6–9 covering methodology and code architecture.`
+        title: `Capture & Attach 5 Proof Screenshots`,
+        description: `Take proof screenshots for Days 1–5 and upload them to your project workspace.`,
+        why: `Screenshots provide proof of step-by-step project progression.`,
+        how: `Use the Screenshot Upload tool in My Project to attach proof images with captions for each day.`,
+        expectedOutput: `5 Proof screenshots attached to workspace and report.`,
+        commonMistakes: `Uploading low-resolution or unreadable blurry images containing unreadable code text.`,
+        screenshotSuggestion: `Capture workspace screenshot gallery.`
       },
       {
         id: `${pCode}-d4-t4`,
-        title: `Capture & Attach Proof Screenshots`,
-        description: `Take high-resolution screenshots of Day 1 setup, Day 2 MVP, Day 3 UI, Day 4 tests, and Day 5 outputs. Upload screenshots to workspace.`,
-        expectedOutput: `5 Organized proof screenshots attached to report.`
-      },
-      {
-        id: `${pCode}-d4-t5`,
-        title: `Compile Results, Limitations, Future Scope & References`,
-        description: `Summarize test case results, state assumptions/limitations, list future enhancements, and cite 3+ academic references.`,
-        expectedOutput: `Final complete 17-section PDF/Word report draft.`
+        title: `Compile Test Cases, Results & References`,
+        description: `Complete Sections 10–17 covering test case tables, real-world impact, limitations, and 3+ references.`,
+        why: `A complete report demonstrates thorough academic rigor.`,
+        how: `Insert your 3 benchmark test cases into a verification table and list academic reference citations.`,
+        expectedOutput: `Complete 17-section PDF/Word project report.`,
+        commonMistakes: `Missing reference citations or leaving placeholder test case values.`,
+        screenshotSuggestion: `Capture completed report title page and table of contents.`
       }
     ],
     expectedOutput: [
       `Complete 17-section academic project report`,
       `Detailed mathematical model documentation`,
-      `Proof screenshots for Days 1–5 uploaded`,
-      `Bibliographic references and citations`
+      `Proof screenshots for Days 1–5 uploaded`
     ]
   };
 
@@ -261,44 +374,55 @@ Include inline code comments explaining how the mathematical formulas map to eac
     day: 5,
     title: 'DEMO',
     goal: `Final polish, presentation slides, viva Q&A review, and project demonstration.`,
-    objective: `Prepare slides, rehearse 12-step demo sequence, master 10 project-specific viva questions, and execute final demonstration.`,
+    objective: `Prepare slides, rehearse demo scenario, master 10 viva questions, and execute final presentation.`,
+    prompts: [projectPrompts[5]],
     tasks: [
       {
         id: `${pCode}-d5-t1`,
-        title: `Final UI Polish & Demonstration Data Preparation`,
-        description: `Clean application interface, verify responsive layout, and prep exact sample values for live demonstration.`,
-        expectedOutput: `Production-ready application running smoothly without bugs.`
+        title: `Final App Polish & Demo Data Check`,
+        description: `Clean UI, verify mobile responsiveness, and prepare sample input values for presentation.`,
+        why: `Unexpected bugs during live demo create a poor impression.`,
+        how: `Run through your application from start to finish on sample inputs to confirm zero errors.`,
+        expectedOutput: `Production-ready application running smoothly.`,
+        commonMistakes: `Testing on random untested inputs during live evaluator presentation.`,
+        screenshotSuggestion: `Capture final polished application dashboard.`
       },
       {
         id: `${pCode}-d5-t2`,
-        title: `Prepare Project Presentation (PPT)`,
-        description: `Create 10-slide presentation deck (Problem, Math Model, Architecture, Live Demo, Results, Viva preparation).`,
-        expectedOutput: `10-slide PowerPoint / PDF presentation.`
+        title: `Prepare 10-Slide Presentation (PPT)`,
+        description: `Create presentation deck covering Problem, Math Model, Architecture, Live Demo, and Results.`,
+        why: `Slides structure your presentation and keep your team on track during defense.`,
+        how: `Create slides: Title -> Problem -> Math Model -> Tech Stack -> Architecture -> App Screenshots -> Results -> Conclusion.`,
+        expectedOutput: `10-Slide presentation deck.`,
+        commonMistakes: `Overcrowding slides with dense text instead of clear bullet points and math formulas.`,
+        screenshotSuggestion: `Capture presentation slides overview.`
       },
       {
         id: `${pCode}-d5-t3`,
-        title: `Review 10 Project-Specific Viva Questions`,
-        description: `Study and rehearse answers for all 10 project viva questions covering ${pMath} and implementation details.`,
-        expectedOutput: `Confident mastery over viva questions.`
+        title: `Review 10 Project-Specific Viva Questions (Prompt 6)`,
+        description: `Rehearse answers for 10 project viva questions covering ${pMath} and implementation.`,
+        why: `Viva questions determine a major portion of your project grade.`,
+        how: `Practice answering each question out loud with your team using Prompt 6 master Q&A.`,
+        expectedOutput: `Confident mastery over viva questions.`,
+        commonMistakes: `Unable to explain how your code actually executes the underlying math formulas.`,
+        screenshotSuggestion: `Capture viva Q&A review notes.`
       },
       {
         id: `${pCode}-d5-t4`,
-        title: `Complete Final Demo Checklist (10 Items)`,
-        description: `Verify all 10 demo items (app operational, sample data ready, math checked, slides ready, team aligned).`,
-        expectedOutput: `Signed 10-item demo checklist.`
-      },
-      {
-        id: `${pCode}-d5-t5`,
-        title: `Conduct Rehearsal & Live Presentation`,
-        description: `Execute 12-step presentation flow: Intro -> Problem -> Math -> App Demo -> Results -> Q&A.`,
-        expectedOutput: `Successful project presentation and viva defence.`
+        title: `Rehearse Live Presentation Scenario`,
+        description: `Execute 3-5 minute live demonstration flow with all team members.`,
+        why: `Rehearsing ensures smooth handoffs between team members during evaluation.`,
+        how: `Assign roles (Leader: Intro & Problem, Member 1: Math & Code, Member 2: Live Demo & Q&A) and practice.`,
+        expectedOutput: `Rehearsed presentation flow completed in under 5 minutes.`,
+        commonMistakes: `Exceeding allocated presentation time or team members talking over each other.`,
+        screenshotSuggestion: `Capture team rehearsal photo or final project presentation slide.`
       }
     ],
     expectedOutput: [
       `10-Slide presentation deck`,
-      `Rehearsed 12-step demo flow`,
+      `Rehearsed 5-step demo flow`,
       `10 Project-specific viva Q&A master list`,
-      `Completed final demo checklist`
+      `Completed final project demonstration`
     ]
   };
 
@@ -329,7 +453,7 @@ Include inline code comments explaining how the mathematical formulas map to eac
       id: `${pCode}-v1`,
       category: 'Problem',
       question: `What is the core real-world problem addressed by "${pTitle}"?`,
-      answer: `The project addresses: "${pProblem}". It solves this problem by translating real-world constraints into mathematical structures and computing optimal or exact solutions.`
+      answer: `The project addresses: "${pProblem}". It solves this problem by translating real-world constraints into mathematical structures and computing optimal solutions.`
     },
     {
       id: `${pCode}-v2`,
