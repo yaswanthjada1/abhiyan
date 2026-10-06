@@ -29,7 +29,7 @@ export const Footer: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <BookOpen size={18} color="var(--primary)" />
-          <strong style={{ color: 'var(--text-primary)' }}>ABHYAN</strong>
+          <strong style={{ color: 'var(--text-primary)' }}>ABHIYAN</strong>
           <span style={{ color: 'var(--text-muted)' }}>• Mathematics Mini Project Programme</span>
         </div>
 

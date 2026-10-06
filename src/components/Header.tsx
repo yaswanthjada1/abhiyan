@@ -35,7 +35,7 @@ export const Header: React.FC = () => {
             <BookOpen size={18} />
           </div>
           <div>
-            <h1 className="logo-title" style={{ fontSize: '1.15rem', fontWeight: 800 }}>ABHYAN</h1>
+            <h1 className="logo-title" style={{ fontSize: '1.15rem', fontWeight: 800 }}>ABHIYAN</h1>
             <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500, display: 'block' }}>
               Mini Project Programme
             </span>

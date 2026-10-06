@@ -15,7 +15,7 @@ export interface PersonalPhoto {
   personId: string;       // Owner person ID (e.g. ABH-P7X29)
   driveFileId: string;    // Google Drive File ID
   driveFolderId?: string; // Student Google Drive folder ID
-  rootFolderId?: string;  // Root ABHYAN Google Drive folder ID
+  rootFolderId?: string;  // Root ABHIYAN Google Drive folder ID
   fileName: string;       // e.g. ABH-P7X29_20261006_103522.webp
   caption: string;        // Optional note/caption
   viewUrl: string;        // Secure view URL/stream

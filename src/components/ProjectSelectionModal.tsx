@@ -281,7 +281,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({ pr
                 <ShieldCheck size={16} color="var(--primary)" /> TEAM LEADER
               </h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+              <div className="project-content-grid">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.2rem' }}>Leader Name *</label>
                   <input
@@ -373,7 +373,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({ pr
                       )}
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.65rem' }}>
+                    <div className="project-content-grid">
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>Name *</label>
                         <input

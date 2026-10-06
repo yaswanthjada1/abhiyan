@@ -352,7 +352,7 @@ export const MySpaceComponent: React.FC<MySpaceComponentProps> = ({ person, isAd
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.25rem' }}>
+            <div className="project-content-grid">
               {photos.map((ph) => (
                 <div
                   key={ph.photoId}
@@ -418,7 +418,7 @@ export const MySpaceComponent: React.FC<MySpaceComponentProps> = ({ person, isAd
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              Your notes are private to you and ABHYAN admin.
+              Your notes are private to you and ABHIYAN admin.
             </span>
             <button
               className="btn-primary"
@@ -450,7 +450,7 @@ export const MySpaceComponent: React.FC<MySpaceComponentProps> = ({ person, isAd
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+            <div className="project-content-grid">
               {notes.map((nt) => (
                 <div
                   key={nt.noteId}

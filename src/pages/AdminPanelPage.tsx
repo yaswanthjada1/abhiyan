@@ -245,7 +245,7 @@ export const AdminPanelPage: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              ABHYAN
+              ABHIYAN
             </div>
             <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
               Administration

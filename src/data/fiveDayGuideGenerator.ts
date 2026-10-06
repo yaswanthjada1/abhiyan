@@ -14,7 +14,7 @@ import {
 /**
  * Generates a complete, project-specific 5-Day Roadmap, AI Prompts,
  * Colab Guide, Report Structure, 10 Viva Questions with Examiner Testing,
- * and Final Demo Checklist for ABHYAN.
+ * and Final Demo Checklist for ABHIYAN.
  * 
  * WORKFLOW:
  * DAY 1 — SETUP (3 HOURS)
@@ -78,7 +78,7 @@ export function generateFiveDayGuideForProject(project: Project): ProjectGuide {
       steps: [
         '1. Open Canva and sign in.',
         '2. Search "Presentation" to choose a modern clean template.',
-        '3. Build 7-10 slides following the ABHYAN structure.',
+        '3. Build 7-10 slides following the ABHIYAN structure.',
         '4. Export as PDF or share live link.'
       ]
     },
@@ -89,7 +89,7 @@ export function generateFiveDayGuideForProject(project: Project): ProjectGuide {
       url: 'https://chatgpt.com',
       steps: [
         '1. Open ChatGPT.',
-        '2. Copy the official project-specific prompt provided in ABHYAN.',
+        '2. Copy the official project-specific prompt provided in ABHIYAN.',
         '3. Paste into ChatGPT to receive Colab-ready code cells.',
         '4. Audit and test each generated code block.'
       ]
@@ -389,7 +389,7 @@ Do not rewrite the entire project unless necessary.`;
       `Working Google Colab notebook for ${pTitle}`,
       `Verified mathematical computation (${pMath})`,
       `Output charts and formatted numerical results`,
-      `Day 2 proof screenshot uploaded to ABHYAN workspace`
+      `Day 2 proof screenshot uploaded to ABHIYAN workspace`
     ]
   };
 
@@ -410,7 +410,7 @@ Keep the mathematical calculation (${pMath}) 100% correct.
 Explain exactly which Colab cell needs to change and provide the updated cell code.`;
 
   const readmeStarterText = `# ${pTitle} (${pCode})
-## Mathematics Mini Project — ABHYAN
+## Mathematics Mini Project — ABHIYAN
 
 ### 1. Problem Statement
 ${pProblem}
@@ -549,7 +549,7 @@ ${pRealWorld}
     objective: `Upload Colab notebook & README to GitHub, build presentation in Canva, and write detailed report in Google Docs.`,
     tools: officialTools.filter(t => ['GitHub', 'Canva', 'Google Docs'].includes(t.name)),
     reportSections: reportSectionsList,
-    shortNoteStructure: `ABHYAN MINI PROJECT — 1-PAGE SUMMARY NOTE
+    shortNoteStructure: `ABHIYAN MINI PROJECT — 1-PAGE SUMMARY NOTE
 Project: ${pTitle} (${pCode})
 Problem: ${pProblem}
 Mathematical Concept: ${pMath}

@@ -60,22 +60,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-lg)',
-          padding: '1.5rem',
-          marginBottom: '1.5rem',
-          boxShadow: 'var(--shadow-md)'
+          padding: '1.25rem',
+          marginBottom: '1.25rem',
+          boxShadow: 'var(--shadow-md)',
+          width: '100%',
+          boxSizing: 'border-box'
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: '1.25rem'
-          }}
-        >
-          <div style={{ flex: 1, minWidth: '280px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="project-detail-header">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <span className="badge-code">{project.projectCode}</span>
               <span className="badge badge-category">{project.category}</span>
               <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 700 }}>
@@ -89,11 +83,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </span>
             </div>
 
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-color)' }}>
+            <h1 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-primary)', overflowWrap: 'anywhere' }}>
               {project.title}
             </h1>
 
-            <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: '0.5rem 0 0 0' }}>
+            <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: '0.5rem 0 0 0', overflowWrap: 'anywhere' }}>
               {project.shortDescription}
             </p>
           </div>
@@ -105,7 +99,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               alignItems: 'stretch',
               gap: '0.65rem',
               width: '100%',
-              maxWidth: '100%',
               background: 'var(--bg-subtle)',
               padding: '1rem',
               borderRadius: 'var(--radius-md)',
@@ -160,57 +153,59 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       </div>
 
       {/* Grid Layout for Project Overview Details */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem', width: '100%' }}>
         {/* 1. UNDERSTAND THE PROJECT */}
         <div
           style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-lg)',
-            padding: '1.5rem',
-            boxShadow: 'var(--shadow-sm)'
+            padding: '1.25rem',
+            boxShadow: 'var(--shadow-sm)',
+            width: '100%',
+            boxSizing: 'border-box'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            <BookOpen size={22} color="var(--primary)" />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <BookOpen size={20} color="var(--primary)" />
+            <h2 style={{ fontSize: 'clamp(18px, 4vw, 24px)', fontWeight: 800, margin: 0 }}>
               UNDERSTAND THE PROJECT
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.25rem' }}>
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+          <div className="project-content-grid">
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 What is the Problem?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
                 {details.understandProject.problem}
               </p>
             </div>
 
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 Why Does This Problem Exist?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
                 {details.understandProject.whyItExists}
               </p>
             </div>
 
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 Who Would Use This Solution?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
                 {details.understandProject.targetUsers}
               </p>
             </div>
 
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 What Exactly Are We Building?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
                 {details.understandProject.whatWeAreBuilding}
               </p>
             </div>
@@ -223,28 +218,32 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-lg)',
-            padding: '1.5rem',
-            boxShadow: 'var(--shadow-sm)'
+            padding: '1.25rem',
+            boxShadow: 'var(--shadow-sm)',
+            width: '100%',
+            boxSizing: 'border-box'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            <Cpu size={22} color="var(--primary)" />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <Cpu size={20} color="var(--primary)" />
+            <h2 style={{ fontSize: 'clamp(18px, 4vw, 24px)', fontWeight: 800, margin: 0 }}>
               MATHEMATICAL FOUNDATION
             </h2>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.25rem', width: '100%' }}>
             {details.mathFoundation.concepts.map((concept, idx) => (
               <span
                 key={idx}
                 style={{
                   background: 'var(--primary-light)',
                   color: 'var(--primary)',
-                  padding: '0.3rem 0.75rem',
+                  padding: '0.3rem 0.65rem',
                   borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.825rem',
-                  fontWeight: 700
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  maxWidth: '100%',
+                  overflowWrap: 'anywhere'
                 }}
               >
                 {concept}
@@ -282,7 +281,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.6rem', color: 'var(--text-muted)' }}>
               VARIABLES & MATRIX DEFINITIONS
             </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.6rem' }}>
+            <div className="project-content-grid">
               {details.mathFoundation.variables.map((v, idx) => (
                 <div
                   key={idx}
@@ -291,11 +290,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                     border: '1px solid var(--border-color)',
                     padding: '0.6rem 0.85rem',
                     borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.825rem'
+                    fontSize: '0.825rem',
+                    width: '100%',
+                    boxSizing: 'border-box'
                   }}
                 >
                   <strong style={{ color: 'var(--primary)', fontFamily: 'monospace' }}>{v.symbol}:</strong>{' '}
-                  <span style={{ color: 'var(--text-secondary)' }}>{v.meaning}</span>
+                  <span style={{ color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>{v.meaning}</span>
                 </div>
               ))}
             </div>
@@ -319,21 +320,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             </h2>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '1.25rem',
-              position: 'relative'
-            }}
-          >
+          <div className="project-three-col-grid">
             {/* INPUT Block */}
             <div
               style={{
                 background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-color)',
                 borderRadius: 'var(--radius-md)',
-                padding: '1.15rem'
+                padding: '1rem',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
               <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
@@ -341,7 +337,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 {details.inputProcessOutput.input.map((item, i) => (
-                  <li key={i}>{item}</li>
+                  <li key={i} style={{ overflowWrap: 'anywhere' }}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -352,7 +348,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-color)',
                 borderRadius: 'var(--radius-md)',
-                padding: '1.15rem'
+                padding: '1rem',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
               <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
@@ -360,7 +358,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 {details.inputProcessOutput.process.map((item, i) => (
-                  <li key={i}>{item}</li>
+                  <li key={i} style={{ overflowWrap: 'anywhere' }}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -371,7 +369,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-color)',
                 borderRadius: 'var(--radius-md)',
-                padding: '1.15rem'
+                padding: '1rem',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
               <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--success)', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
@@ -379,7 +379,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </div>
               <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 {details.inputProcessOutput.output.map((item, i) => (
-                  <li key={i}>{item}</li>
+                  <li key={i} style={{ overflowWrap: 'anywhere' }}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -387,14 +387,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
 
         {/* 4. REAL-WORLD CONNECTION & WHAT YOU WILL BUILD */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <div className="project-content-grid">
           {/* Real World Connection */}
           <div
             style={{
               background: 'var(--bg-card)',
               border: '1px solid var(--border-color)',
               borderRadius: 'var(--radius-lg)',
-              padding: '1.5rem'
+              padding: '1.25rem',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
@@ -403,7 +405,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 REAL-WORLD CONNECTION
               </h3>
             </div>
-            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-secondary)' }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
               {project.realWorldConnection}
             </p>
           </div>
@@ -414,7 +416,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               background: 'var(--bg-card)',
               border: '1px solid var(--border-color)',
               borderRadius: 'var(--radius-lg)',
-              padding: '1.5rem'
+              padding: '1.25rem',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
@@ -427,7 +431,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               {details.whatYouWillBuild.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem' }}>
                   <Check size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span style={{ color: 'var(--text-secondary)' }}>{item}</span>
+                  <span style={{ color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>{item}</span>
                 </div>
               ))}
             </div>
@@ -435,14 +439,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         </div>
 
         {/* 5. FINAL DELIVERABLE & EXPECTED DEMO */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <div className="project-content-grid">
           {/* Final Deliverable */}
           <div
             style={{
               background: 'var(--bg-card)',
               border: '1px solid var(--border-color)',
               borderRadius: 'var(--radius-lg)',
-              padding: '1.5rem'
+              padding: '1.25rem',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
@@ -455,7 +461,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               {details.finalDeliverable.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                   <CheckCircle2 size={16} color="var(--success)" style={{ flexShrink: 0 }} />
-                  <span>{item}</span>
+                  <span style={{ overflowWrap: 'anywhere' }}>{item}</span>
                 </div>
               ))}
             </div>
@@ -467,7 +473,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               background: 'var(--bg-card)',
               border: '1px solid var(--border-color)',
               borderRadius: 'var(--radius-lg)',
-              padding: '1.5rem'
+              padding: '1.25rem',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
@@ -486,7 +494,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                     borderRadius: 'var(--radius-sm)',
                     fontSize: '0.825rem',
                     color: 'var(--text-secondary)',
-                    lineHeight: '1.4'
+                    lineHeight: '1.4',
+                    overflowWrap: 'anywhere'
                   }}
                 >
                   {step}
@@ -502,10 +511,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-lg)',
-            padding: '1.5rem',
+            padding: '1.25rem',
             boxShadow: 'var(--shadow-sm)',
-            minWidth: 0,
-            overflowWrap: 'break-word'
+            width: '100%',
+            boxSizing: 'border-box'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
@@ -515,7 +524,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             </h3>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '0.85rem' }}>
+          <div className="project-roadmap-grid">
             {[
               { day: 'Day 1', title: 'SETUP', desc: 'Deconstruct problem, formulate math model, setup environment.' },
               { day: 'Day 2', title: 'AI VIBE CODE', desc: 'Use AI prompts to build core calculation engine & MVP.' },
@@ -530,7 +539,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                   border: '1px solid var(--border-color)',
                   borderRadius: 'var(--radius-md)',
                   padding: '0.85rem',
-                  fontSize: '0.8rem'
+                  fontSize: '0.8rem',
+                  width: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
                 <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>
@@ -539,7 +550,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 <div style={{ fontWeight: 700, margin: '0.2rem 0 0.4rem 0', color: 'var(--text-color)' }}>
                   {d.title}
                 </div>
-                <div style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                <div style={{ color: 'var(--text-muted)', lineHeight: '1.4', overflowWrap: 'anywhere' }}>
                   {d.desc}
                 </div>
               </div>
@@ -553,10 +564,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-lg)',
-            padding: '1.5rem',
+            padding: '1.25rem',
             boxShadow: 'var(--shadow-sm)',
-            minWidth: 0,
-            overflowWrap: 'break-word'
+            width: '100%',
+            boxSizing: 'border-box'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
@@ -565,12 +576,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               SKILLS & TOOLS ACQUIRED
             </h3>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem' }}>
+          <div className="project-content-grid">
             <div>
               <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.5rem 0', fontWeight: 700 }}>REQUIRED & LEARNED SKILLS</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', width: '100%' }}>
                 {(project.requiredSkills || ['Linear Algebra', 'Problem Solving', 'Data Visualization']).map((skill, idx) => (
-                  <span key={idx} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', padding: '0.3rem 0.65rem', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 600 }}>
+                  <span key={idx} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', padding: '0.3rem 0.65rem', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 600, overflowWrap: 'anywhere' }}>
                     {skill}
                   </span>
                 ))}
@@ -579,9 +590,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             {project.recommendedTechStack && (
               <div>
                 <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.5rem 0', fontWeight: 700 }}>RECOMMENDED TECH STACK</h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', width: '100%' }}>
                   {Object.entries(project.recommendedTechStack).map(([k, v]) => (
-                    <span key={k} style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '0.3rem 0.65rem', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <span key={k} style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '0.3rem 0.65rem', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 600, overflowWrap: 'anywhere' }}>
                       <strong style={{ textTransform: 'capitalize' }}>{k}:</strong> {v}
                     </span>
                   ))}

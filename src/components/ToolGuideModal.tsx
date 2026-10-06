@@ -89,7 +89,7 @@ export const ToolGuideModal: React.FC<ToolGuideModalProps> = ({ tool, onClose })
               {tool.name} Guide
             </h2>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Official Tool for ABHYAN 5-Day Workflow
+              Official Tool for ABHIYAN 5-Day Workflow
             </span>
           </div>
         </div>
@@ -115,7 +115,7 @@ export const ToolGuideModal: React.FC<ToolGuideModalProps> = ({ tool, onClose })
         {/* Why Needed */}
         <div style={{ marginBottom: '1.25rem' }}>
           <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
-            <Lightbulb size={15} color="var(--accent)" /> Why you need it for ABHYAN:
+            <Lightbulb size={15} color="var(--accent)" /> Why you need it for ABHIYAN:
           </div>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
             {tool.whyNeeded}

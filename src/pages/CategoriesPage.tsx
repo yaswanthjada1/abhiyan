@@ -43,7 +43,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectProject 
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+      <div className="project-content-grid">
         {categoryList.map(cat => (
           <div
             key={cat.name}

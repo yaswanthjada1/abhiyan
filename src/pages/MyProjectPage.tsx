@@ -127,7 +127,7 @@ export const MyProjectPage: React.FC = () => {
             <BookOpen size={28} />
           </div>
           <h1 style={{ fontSize: '1.65rem', fontWeight: 800, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-            ABHYAN Project Workspace
+            ABHIYAN Project Workspace
           </h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.75rem', lineHeight: 1.5 }}>
             Enter your <strong>Project Reference ID</strong> (e.g. MMH-A1-X7K92) to open your team workspace.
@@ -161,7 +161,7 @@ export const MyProjectPage: React.FC = () => {
               disabled={loading}
               style={{ justifyContent: 'center', padding: '0.85rem', minHeight: '48px', fontWeight: 700, fontSize: '0.95rem' }}
             >
-              <Search size={18} /> {loading ? 'Validating Reference ID...' : 'Enter ABHYAN Workspace'}
+              <Search size={18} /> {loading ? 'Validating Reference ID...' : 'Enter ABHIYAN Workspace'}
             </button>
           </form>
 
@@ -221,7 +221,7 @@ export const MyProjectPage: React.FC = () => {
                 {activeProject.projectCode}
               </span>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                ABHYAN
+                ABHIYAN
               </span>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                 Ref: {activeTeam.referenceId}
@@ -315,7 +315,7 @@ export const MyProjectPage: React.FC = () => {
       <div style={{ marginBottom: '1.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', padding: '0 0.25rem' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            ABHYAN 5-DAY WORKFLOW TIMELINE (TOTAL 15 HOURS)
+            ABHIYAN 5-DAY WORKFLOW TIMELINE (TOTAL 15 HOURS)
           </span>
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)' }}>
             Stage {selectedDayView} of 5 — {currentSelectedDayObj.hours} Hours Allocated
@@ -325,7 +325,7 @@ export const MyProjectPage: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(5, minwidth(110px))' : 'repeat(5, 1fr)',
+            gridTemplateColumns: isMobile ? 'repeat(5, minmax(110px, 1fr))' : 'repeat(5, 1fr)',
             gap: '0.5rem',
             overflowX: isMobile ? 'auto' : 'visible',
             paddingBottom: isMobile ? '0.5rem' : 0
