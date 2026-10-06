@@ -14379,8 +14379,8 @@ export const INITIAL_PROJECTS: Project[] = [
       "db": "Cloud Firestore"
     },
     "selectionLimit": 3,
-    "selectedTeamCount": 3,
-    "status": "full",
+    "selectedTeamCount": 0,
+    "status": "available",
     "implementationGuide": [
       {
         "stepNumber": 1,

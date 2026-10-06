@@ -9,7 +9,7 @@ interface ProjectSelectionModalProps {
 }
 
 export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({ project, onClose }) => {
-  const { selectProjectForTeam, setActiveTab } = useProjectContext();
+  const { selectProjectForTeam, setActiveTab, teamCounts } = useProjectContext();
 
   const minTeamSize = project?.minimumTeamSize || 2;
   const maxTeamSize = project?.maximumTeamSize || 5;
@@ -34,7 +34,8 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({ pr
 
   if (!project) return null;
 
-  const isFull = project.selectedTeamCount >= 3 || project.status === 'full';
+  const currentTeamCount = teamCounts[project.projectCode] || 0;
+  const isFull = currentTeamCount >= 3;
   const currentTotalSize = 1 + members.length; // Leader + Members
 
   const handleAddMember = () => {
