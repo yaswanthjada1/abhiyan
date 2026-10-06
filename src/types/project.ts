@@ -71,6 +71,16 @@ export interface DayGuideTask {
   expectedOutput: string;
   commonMistakes?: string;
   screenshotSuggestion?: string; // Evidence to capture
+  checkpoints?: string[];
+  codePrompt?: string;
+  cellSteps?: CellGuideStep[];
+}
+
+export interface CellGuideStep {
+  stepNumber: number;
+  title: string;
+  action: string;
+  expectedResult: string;
 }
 
 export type PromptCategory =
@@ -93,14 +103,53 @@ export interface ProjectPrompt {
   promptText: string;
 }
 
+export interface OfficialTool {
+  name: 'Google' | 'GitHub' | 'Hugging Face' | 'Canva' | 'ChatGPT' | 'Google Colab' | 'Google Docs';
+  purpose: string;
+  whyNeeded: string;
+  url: string;
+  steps: string[];
+  whatNotToDo?: string;
+  isOptional?: boolean;
+}
+
+export interface ProblemBreakdown {
+  whatToBuild: string;
+  targetUser: string;
+  inputs: string;
+  outputs: string;
+  mathConcept: string;
+  finalDemoGoal: string;
+  checklist: string[];
+}
+
 export interface DayGuide {
   day: number; // 1 to 5
   title: 'SETUP' | 'AI VIBE CODE' | 'CUSTOMISE' | 'DOCUMENT' | 'DEMO';
+  hours: number; // 3, 4, 3, 3, 2
   goal: string;
   objective: string;
   tasks: DayGuideTask[];
   prompts?: ProjectPrompt[];
   expectedOutput: string[];
+  tools?: OfficialTool[];
+  checkpoints?: string[];
+  warningMessage?: string;
+  warningChecklist?: string[];
+  visualFlow?: string[];
+  cellGuide?: CellGuideStep[];
+  debugPrompt?: ProjectPrompt;
+  readmeStarterTemplate?: string;
+  shortNoteStructure?: string;
+  reportSections?: DocumentationSection[];
+  vivaQuestions?: VivaQuestion[];
+  demoScript?: DemoStep[];
+}
+
+export interface DemoStep {
+  timeframe: string; // e.g. "0:00–0:30"
+  section: string;   // e.g. "Problem"
+  guidance: string;  // e.g. "What problem are we solving?"
 }
 
 export interface VivaQuestion {
@@ -108,6 +157,7 @@ export interface VivaQuestion {
   question: string;
   answer: string;
   category: 'Problem' | 'Mathematics' | 'Algorithm' | 'Implementation' | 'Results' | 'Limitations' | 'Real-world';
+  examinerTesting?: string;
 }
 
 export interface DocumentationSection {
@@ -122,6 +172,7 @@ export interface ProjectGuide {
   day3: DayGuide;
   day4: DayGuide;
   day5: DayGuide;
+  problemBreakdown?: ProblemBreakdown;
   documentationGuide: DocumentationSection[];
   vivaQuestions: VivaQuestion[];
   demoChecklist: string[];

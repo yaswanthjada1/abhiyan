@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Project, TeamDocument, ScreenshotMetadata, AdminUser } from '../types/project';
+import { PersonIdentity } from '../types/personalSpace';
+import { getOrCreatePersonIdentity } from '../services/personalSpaceService';
 import { PROJECTS } from '../data/projects';
 import {
   fetchDynamicTeamCounts,
@@ -44,6 +46,11 @@ interface ProjectContextType {
   setActiveProject: (proj: Project | null) => void;
   teamScreenshots: ScreenshotMetadata[];
   setTeamScreenshots: React.Dispatch<React.SetStateAction<ScreenshotMetadata[]>>;
+
+  // Person Identity (Private Personal Space)
+  activePerson: PersonIdentity | null;
+  setActivePerson: (person: PersonIdentity | null) => void;
+  selectPersonIdentity: (name: string, rollNumber: string, role?: 'leader' | 'member') => Promise<PersonIdentity>;
 
   // Filters & Search (Instant Local)
   searchQuery: string;
@@ -180,6 +187,28 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return res;
   };
 
+  // Person Identity (Private Personal Space)
+  const [activePerson, setActivePerson] = useState<PersonIdentity | null>(null);
+
+  const selectPersonIdentity = async (
+    name: string,
+    rollNumber: string,
+    role: 'leader' | 'member' = 'member'
+  ): Promise<PersonIdentity> => {
+    if (!activeTeam) {
+      throw new Error('No active team workspace loaded');
+    }
+    const identity = await getOrCreatePersonIdentity(
+      activeTeam.referenceId,
+      activeTeam.teamId,
+      name,
+      rollNumber,
+      role
+    );
+    setActivePerson(identity);
+    return identity;
+  };
+
   // ACCESS TEAM WORKSPACE BY REFERENCE ID
   const accessProjectByReferenceId = async (refId: string): Promise<boolean> => {
     const result = await fetchTeamByReferenceId(refId);
@@ -190,9 +219,21 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setActiveReferenceId(result.team.referenceId);
       localStorage.setItem(REF_STORAGE_KEY, result.team.referenceId);
 
-      // Load team screenshots from Firebase Storage
+      // Load team screenshots
       const scrs = await fetchTeamScreenshots(result.team.teamId);
       setTeamScreenshots(scrs);
+
+      // Auto-initialize leader/first member identity
+      if (result.team.leader) {
+        getOrCreatePersonIdentity(
+          result.team.referenceId,
+          result.team.teamId,
+          result.team.leader.name,
+          result.team.leader.rollNumber,
+          'leader'
+        ).then(p => setActivePerson(p));
+      }
+
       return true;
     } else {
       addNotification('warning', 'Invalid Reference ID', `No registered team found with Reference ID "${refId}".`);
@@ -313,6 +354,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setActiveProject,
         teamScreenshots,
         setTeamScreenshots,
+        activePerson,
+        setActivePerson,
+        selectPersonIdentity,
         searchQuery,
         setSearchQuery,
         selectedCategory,

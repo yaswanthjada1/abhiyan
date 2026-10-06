@@ -3,6 +3,9 @@ import { useProjectContext } from '../context/ProjectContext';
 import { Project, TeamDocument } from '../types/project';
 import { exportAdminDataToExcel } from '../utils/excelExporter';
 import { fetchTeamNotes } from '../firebase/services';
+import { MySpaceComponent } from '../components/MySpaceComponent';
+import { fetchAllPeopleForAdmin, fetchAllPersonalPhotosForAdmin, AdminPersonOverview } from '../services/personalSpaceService';
+import { PersonIdentity, PersonalPhoto } from '../types/personalSpace';
 import {
   BookOpen,
   FolderKanban,
@@ -20,7 +23,8 @@ import {
   ShieldCheck,
   Download,
   Loader2,
-  FileText
+  FileText,
+  User
 } from 'lucide-react';
 
 export const AdminPanelPage: React.FC = () => {
@@ -35,7 +39,7 @@ export const AdminPanelPage: React.FC = () => {
   } = useProjectContext();
 
   const [currentSection, setCurrentSection] = useState<
-    'overview' | 'projects' | 'teams' | 'selections' | 'progress' | 'screenshots' | 'guide' | 'settings'
+    'overview' | 'projects' | 'teams' | 'selections' | 'progress' | 'screenshots' | 'people' | 'guide' | 'settings'
   >('overview');
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,6 +47,13 @@ export const AdminPanelPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [screenshotDayFilter, setScreenshotDayFilter] = useState<number | 'All'>('All');
   const [isExporting, setIsExporting] = useState(false);
+
+  // Admin Personal Space State
+  const [adminPeople, setAdminPeople] = useState<AdminPersonOverview[]>([]);
+  const [allPersonalPhotos, setAllPersonalPhotos] = useState<PersonalPhoto[]>([]);
+  const [peopleSubTab, setPeopleSubTab] = useState<'people' | 'photos'>('people');
+  const [loadingPeople, setLoadingPeople] = useState(false);
+  const [inspectedPerson, setInspectedPerson] = useState<PersonIdentity | null>(null);
 
   // Selected Detail Drawers / Modals
   const [viewingProject, setViewingProject] = useState<Project | null>(null);
@@ -56,6 +67,17 @@ export const AdminPanelPage: React.FC = () => {
       loadAdminTeams();
     }
   }, [adminUser]);
+
+  useEffect(() => {
+    if (adminUser && currentSection === 'people') {
+      setLoadingPeople(true);
+      Promise.all([fetchAllPeopleForAdmin(), fetchAllPersonalPhotosForAdmin()]).then(([ppl, phts]) => {
+        setAdminPeople(ppl);
+        setAllPersonalPhotos(phts);
+        setLoadingPeople(false);
+      });
+    }
+  }, [adminUser, currentSection]);
 
   const handleExportData = async () => {
     try {
@@ -222,11 +244,11 @@ export const AdminPanelPage: React.FC = () => {
               fontSize: '1rem'
             }}
           >
-            PH
+            AB
           </div>
           <div>
             <div style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              PROJECT HUB
+              ABHYAN
             </div>
             <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
               Administration
@@ -354,6 +376,12 @@ export const AdminPanelPage: React.FC = () => {
           onClick={() => setCurrentSection('screenshots')}
         >
           <Camera size={15} /> Screenshots
+        </button>
+        <button
+          className={`tab-button ${currentSection === 'people' ? 'active' : ''}`}
+          onClick={() => setCurrentSection('people')}
+        >
+          <User size={15} /> People & Personal Space
         </button>
         <button
           className={`tab-button ${currentSection === 'guide' ? 'active' : ''}`}
@@ -904,6 +932,206 @@ export const AdminPanelPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SECTION: PEOPLE & PERSONAL STORAGE */}
+      {currentSection === 'people' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>People & Personal Space Storage</h2>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                Inspect student personal photo uploads (stored in Google Drive under <code>ABHYAN ROOT/&#123;personId&#125;/</code>) and private notes.
+              </p>
+            </div>
+
+            {/* Sub-tab Switcher */}
+            <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.3rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+              <button
+                onClick={() => setPeopleSubTab('people')}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.825rem',
+                  fontWeight: peopleSubTab === 'people' ? 800 : 600,
+                  border: 'none',
+                  background: peopleSubTab === 'people' ? 'var(--primary)' : 'transparent',
+                  color: peopleSubTab === 'people' ? '#ffffff' : 'var(--text-color)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                <User size={15} /> People Overview ({adminPeople.length})
+              </button>
+              <button
+                onClick={() => setPeopleSubTab('photos')}
+                style={{
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.825rem',
+                  fontWeight: peopleSubTab === 'photos' ? 800 : 600,
+                  border: 'none',
+                  background: peopleSubTab === 'photos' ? 'var(--primary)' : 'transparent',
+                  color: peopleSubTab === 'photos' ? '#ffffff' : 'var(--text-color)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                <Camera size={15} /> All Personal Photos ({allPersonalPhotos.length})
+              </button>
+            </div>
+          </div>
+
+          {inspectedPerson ? (
+            <div>
+              <button
+                className="btn-secondary"
+                onClick={() => setInspectedPerson(null)}
+                style={{ marginBottom: '1rem', fontSize: '0.825rem' }}
+              >
+                ← Back to All People
+              </button>
+              <MySpaceComponent person={inspectedPerson} isAdmin={true} />
+            </div>
+          ) : peopleSubTab === 'people' ? (
+            <div>
+              {loadingPeople ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <Loader2 size={24} className="spin" style={{ marginBottom: '0.5rem' }} />
+                  <div>Loading registered people overview...</div>
+                </div>
+              ) : adminPeople.length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                  <p style={{ color: 'var(--text-muted)' }}>No person identities registered yet.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                  {adminPeople
+                    .filter(po => {
+                      if (!searchQuery) return true;
+                      const q = searchQuery.toLowerCase();
+                      return po.person.name.toLowerCase().includes(q) ||
+                             po.person.rollNumber.toLowerCase().includes(q) ||
+                             po.person.personId.toLowerCase().includes(q) ||
+                             po.person.referenceId.toLowerCase().includes(q);
+                    })
+                    .map(po => (
+                      <div
+                        key={po.person.personId}
+                        style={{
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-md)',
+                          padding: '1rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>
+                              {po.person.personId}
+                            </span>
+                            <span style={{ fontSize: '0.68rem', background: 'var(--bg-subtle)', padding: '0.15rem 0.4rem', borderRadius: '4px' }}>
+                              {po.person.role}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                            {po.person.name}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                            Roll: {po.person.rollNumber} • Ref: {po.person.referenceId}
+                          </div>
+                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                            <span>📷 Photos: <strong>{po.photoCount}</strong></span>
+                            <span>📝 Notes: <strong>{po.noteCount}</strong></span>
+                          </div>
+                        </div>
+
+                        <button
+                          className="btn-primary"
+                          onClick={() => setInspectedPerson(po.person)}
+                          style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem', padding: '0.45rem' }}
+                        >
+                          <Eye size={14} /> View Personal Space
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ALL PERSONAL PHOTOS GALLERY */
+            <div>
+              {allPersonalPhotos.length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                  <p style={{ color: 'var(--text-muted)' }}>No personal photos uploaded to Google Drive yet.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.25rem' }}>
+                  {allPersonalPhotos
+                    .filter(ph => {
+                      if (!searchQuery) return true;
+                      const q = searchQuery.toLowerCase();
+                      return ph.personId.toLowerCase().includes(q) ||
+                             ph.caption.toLowerCase().includes(q) ||
+                             ph.fileName.toLowerCase().includes(q);
+                    })
+                    .map(ph => (
+                      <div
+                        key={ph.photoId}
+                        style={{
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-md)',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          boxShadow: 'var(--shadow-sm)'
+                        }}
+                      >
+                        <div style={{ height: '150px', overflow: 'hidden', position: 'relative', background: '#000', cursor: 'pointer' }} onClick={() => setPreviewImage(ph.viewUrl)}>
+                          <img src={ph.viewUrl} alt={ph.caption || ph.fileName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <div style={{ padding: '0.75rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                            <span style={{ fontSize: '0.725rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>
+                              {ph.personId}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                              {new Date(ph.uploadedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {ph.caption ? (
+                            <p style={{ margin: 0, fontSize: '0.825rem', color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                              {ph.caption}
+                            </p>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No caption</span>
+                          )}
+                          <div style={{ marginTop: '0.65rem' }}>
+                            <button
+                              className="btn-secondary"
+                              onClick={() => setPreviewImage(ph.viewUrl)}
+                              style={{ width: '100%', justifyContent: 'center', fontSize: '0.75rem', padding: '0.3rem' }}
+                            >
+                              <Eye size={13} /> Inspect Photo
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
           )}
         </div>

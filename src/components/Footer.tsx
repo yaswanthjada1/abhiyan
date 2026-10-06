@@ -29,8 +29,8 @@ export const Footer: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <BookOpen size={18} color="var(--primary)" />
-          <strong style={{ color: 'var(--text-primary)' }}>Project Hub</strong>
-          <span style={{ color: 'var(--text-muted)' }}>• Mini Project Management System</span>
+          <strong style={{ color: 'var(--text-primary)' }}>ABHYAN</strong>
+          <span style={{ color: 'var(--text-muted)' }}>• Mathematics Mini Project Programme</span>
         </div>
 
         <div style={{ display: 'flex', gap: '1.5rem' }}>

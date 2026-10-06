@@ -58,7 +58,7 @@ export const AdminLoginPage: React.FC = () => {
           >
             <BookOpen size={24} />
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>Project Hub</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>ABHYAN</h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
             Administrator Sign In
           </p>
