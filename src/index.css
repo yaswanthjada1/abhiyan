@@ -504,32 +504,65 @@ img {
 .toast-warning { border-left: 3px solid var(--warning); }
 .toast-danger { border-left: 3px solid var(--danger); }
 
-/* Mobile-First Project Content Grids (Strict 1 Column on Mobile) */
-.project-content-grid {
+/* Mobile-First Project Content Grids (Strict 1 Column on Mobile with min-width: 0) */
+.project-content-grid,
+.project-three-col-grid,
+.project-roadmap-grid,
+.responsive-two-col {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
-.project-three-col-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+.project-content-grid > *,
+.project-three-col-grid > *,
+.project-roadmap-grid > *,
+.responsive-two-col > * {
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
 .project-roadmap-grid {
-  display: grid;
-  grid-template-columns: 1fr;
   gap: 0.75rem;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+}
+
+/* KaTeX & Mathematical Formula Isolation */
+.math-block {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box !important;
+}
+
+.math-inline {
+  display: inline-block !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  vertical-align: middle;
+}
+
+.katex-display {
+  display: block !important;
+  margin: 0.5em 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.katex {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
 }
 
 /* Base Mobile 5-Step Visual Timeline (Vertical Stack on Phone) */
@@ -538,14 +571,16 @@ img {
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
+  min-width: 0;
 }
 
 /* Base Mobile Screenshots Grid (1 Column) */
 .screenshots-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   width: 100%;
+  min-width: 0;
 }
 
 /* Mobile Default: Cards visible, Desktop Tables hidden */
@@ -558,6 +593,7 @@ img {
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
+  min-width: 0;
 }
 
 /* Vertical Stacking Layout Class for Project Detail Header */
@@ -566,11 +602,32 @@ img {
   flex-direction: column;
   gap: 1.25rem;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.project-detail-identity {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.project-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 100%;
+  background: var(--bg-subtle);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
 }
 
 .responsive-two-col {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   width: 100%;
 }
@@ -650,9 +707,20 @@ img {
   }
 
   .project-detail-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    align-items: start;
+    gap: 1.5rem;
+  }
+
+  .project-detail-identity {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .project-detail-actions {
+    width: 280px;
+    max-width: 100%;
   }
 
   .screenshots-grid {
@@ -687,6 +755,15 @@ img {
 
   .project-roadmap-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .project-detail-header {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 2rem;
+  }
+
+  .project-detail-actions {
+    width: 320px;
   }
 
   .screenshots-grid {

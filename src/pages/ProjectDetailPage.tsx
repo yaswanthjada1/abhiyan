@@ -68,7 +68,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         }}
       >
         <div className="project-detail-header">
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="project-detail-identity">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <span className="badge-code">{project.projectCode}</span>
               <span className="badge badge-category">{project.category}</span>
@@ -83,29 +83,16 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               </span>
             </div>
 
-            <h1 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-primary)', overflowWrap: 'anywhere' }}>
+            <h1 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 800, margin: '0.35rem 0', color: 'var(--text-primary)', overflowWrap: 'break-word', wordBreak: 'normal' }}>
               {project.title}
             </h1>
 
-            <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: '0.5rem 0 0 0', overflowWrap: 'anywhere' }}>
+            <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: '0.5rem 0 0 0', width: '100%', maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'normal' }}>
               {project.shortDescription}
             </p>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'stretch',
-              gap: '0.65rem',
-              width: '100%',
-              background: 'var(--bg-subtle)',
-              padding: '1rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)',
-              boxSizing: 'border-box'
-            }}
-          >
+          <div className="project-detail-actions">
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.825rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Availability:</span>
               <strong style={{ color: isFull ? '#ef4444' : 'var(--success)' }}>
@@ -174,38 +161,38 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </div>
 
           <div className="project-content-grid">
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 What is the Problem?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: 'var(--text-secondary)', width: '100%', maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                 {details.understandProject.problem}
               </p>
             </div>
 
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 Why Does This Problem Exist?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: 'var(--text-secondary)', width: '100%', maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                 {details.understandProject.whyItExists}
               </p>
             </div>
 
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 Who Would Use This Solution?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: 'var(--text-secondary)', width: '100%', maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                 {details.understandProject.targetUsers}
               </p>
             </div>
 
-            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
               <h4 style={{ color: 'var(--primary)', margin: '0 0 0.4rem 0', fontSize: '0.9rem', fontWeight: 700 }}>
                 What Exactly Are We Building?
               </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: 'var(--text-secondary)', width: '100%', maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                 {details.understandProject.whatWeAreBuilding}
               </p>
             </div>
@@ -405,7 +392,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                 REAL-WORLD CONNECTION
               </h3>
             </div>
-            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-secondary)', overflowWrap: 'anywhere' }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-secondary)', width: '100%', maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
               {project.realWorldConnection}
             </p>
           </div>
