@@ -10,7 +10,8 @@ import {
   runTransaction,
   serverTimestamp,
   addDoc,
-  onSnapshot
+  onSnapshot,
+  deleteDoc
 } from 'firebase/firestore';
 import {
   signInWithEmailAndPassword,
@@ -385,4 +386,69 @@ export const fetchAllTeamsForAdmin = async (): Promise<TeamDocument[]> => {
     return [];
   }
 };
+
+// DELETE TEAM FROM FIRESTORE
+export const deleteTeamFromFirestore = async (
+  teamId: string,
+  projectId: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    if (!auth.currentUser) {
+      return {
+        success: false,
+        message: "You don't have permission to delete this team."
+      };
+    }
+
+    // 1. Delete screenshots subcollection documents
+    try {
+      const scrsSnap = await getDocs(collection(db, 'teams', teamId, 'screenshots'));
+      for (const d of scrsSnap.docs) {
+        await deleteDoc(doc(db, 'teams', teamId, 'screenshots', d.id));
+      }
+    } catch (e) {
+      console.warn('Subcollection screenshots deletion cleanup warning:', e);
+    }
+
+    // 2. Delete main team document
+    const teamRef = doc(db, 'teams', teamId);
+    await deleteDoc(teamRef);
+
+    // 3. Clean up project selection record if it exists
+    try {
+      const selectionRef = doc(db, 'projectSelections', `${projectId}_${teamId}`);
+      await deleteDoc(selectionRef);
+    } catch (e) {
+      console.warn('Project selection record deletion warning:', e);
+    }
+
+    // 4. Clean up team notes record if it exists
+    try {
+      const noteRef = doc(db, 'teamNotes', teamId);
+      await deleteDoc(noteRef);
+    } catch (e) {
+      console.warn('Team notes record deletion warning:', e);
+    }
+
+    return {
+      success: true,
+      message: 'Team deleted successfully.'
+    };
+  } catch (error: any) {
+    console.error('Delete team error:', error);
+    const isPermissionError = error?.code === 'permission-denied' || error?.message?.includes('permission');
+    return {
+      success: false,
+      message: isPermissionError
+        ? "You don't have permission to delete this team."
+        : "Unable to delete team. Please try again."
+    };
+  }
+};
+
+// PUBLIC TEAMS LIST FOR STUDENT SEARCH
+export const fetchPublicTeamsForSearch = async (): Promise<TeamDocument[]> => {
+  return await fetchAllTeamsForAdmin();
+};
+
 

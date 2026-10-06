@@ -24,7 +24,9 @@ import {
   Download,
   Loader2,
   FileText,
-  User
+  User,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 
 export const AdminPanelPage: React.FC = () => {
@@ -35,6 +37,7 @@ export const AdminPanelPage: React.FC = () => {
     setActiveTab,
     adminTeams,
     loadAdminTeams,
+    deleteTeam,
     logoutAdmin
   } = useProjectContext();
 
@@ -59,6 +62,30 @@ export const AdminPanelPage: React.FC = () => {
   const [teamNotesData, setTeamNotesData] = useState<Record<string, string>>({});
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Delete Team State
+  const [deletingTeam, setDeletingTeam] = useState<TeamDocument | null>(null);
+  const [isDeletingTeam, setIsDeletingTeam] = useState(false);
+  const [deleteTeamError, setDeleteTeamError] = useState<string | null>(null);
+
+  const handleConfirmDeleteTeam = async () => {
+    if (!deletingTeam) return;
+    setIsDeletingTeam(true);
+    setDeleteTeamError(null);
+    try {
+      const res = await deleteTeam(deletingTeam.teamId, deletingTeam.projectId);
+      if (res.success) {
+        setDeletingTeam(null);
+      } else {
+        setDeleteTeamError(res.message || 'Unable to delete team. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('Delete team failed:', err);
+      setDeleteTeamError('Unable to delete team. Please try again.');
+    } finally {
+      setIsDeletingTeam(false);
+    }
+  };
 
   useEffect(() => {
     if (adminUser) {
@@ -722,13 +749,37 @@ export const AdminPanelPage: React.FC = () => {
                             </span>
                           </td>
                           <td style={{ padding: '0.65rem 1rem', textAlign: 'right' }}>
-                            <button
-                              className="btn-secondary"
-                              onClick={() => handleOpenTeamDetail(t)}
-                              style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', minHeight: '36px' }}
-                            >
-                              <Eye size={13} /> View Team
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                              <button
+                                className="btn-secondary"
+                                onClick={() => handleOpenTeamDetail(t)}
+                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', minHeight: '36px' }}
+                              >
+                                <Eye size={13} /> View Team
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDeletingTeam(t);
+                                  setDeleteTeamError(null);
+                                }}
+                                style={{
+                                  fontSize: '0.75rem',
+                                  padding: '0.25rem 0.55rem',
+                                  minHeight: '36px',
+                                  background: 'rgba(239, 68, 68, 0.1)',
+                                  color: '#ef4444',
+                                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                                  borderRadius: 'var(--radius-sm)',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
+                                }}
+                              >
+                                <Trash2 size={13} /> Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -753,13 +804,38 @@ export const AdminPanelPage: React.FC = () => {
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
                       Leader: {t.leader?.name || 'N/A'} • {(t.members?.length || 0) + 1} Members
                     </div>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => handleOpenTeamDetail(t)}
-                      style={{ width: '100%', justifyContent: 'center', minHeight: '44px' }}
-                    >
-                      <Eye size={14} /> View Team Details
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => handleOpenTeamDetail(t)}
+                        style={{ flex: 1, justifyContent: 'center', minHeight: '44px' }}
+                      >
+                        <Eye size={14} /> View Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeletingTeam(t);
+                          setDeleteTeamError(null);
+                        }}
+                        style={{
+                          flex: 1,
+                          justifyContent: 'center',
+                          minHeight: '44px',
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          color: '#ef4444',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                      >
+                        <Trash2 size={14} /> Delete Team
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -1263,6 +1339,182 @@ export const AdminPanelPage: React.FC = () => {
               <X size={18} />
             </button>
             <img src={previewImage} alt="Screenshot Preview" style={{ width: '100%', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-md)' }} />
+          </div>
+        </div>
+      )}
+
+      {/* DELETE TEAM CONFIRMATION MODAL */}
+      {deletingTeam && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100,
+            padding: '1rem'
+          }}
+          onClick={() => !isDeletingTeam && setDeletingTeam(null)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-lg)',
+              maxWidth: '440px',
+              width: '100%',
+              padding: '1.5rem',
+              boxShadow: 'var(--shadow-lg)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.15rem'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    color: '#ef4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                    Delete Team?
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Are you sure you want to delete this team?
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => !isDeletingTeam && setDeletingTeam(null)}
+                disabled={isDeletingTeam}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: isDeletingTeam ? 'not-allowed' : 'pointer',
+                  padding: '0.25rem'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div
+              style={{
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                padding: '0.85rem 1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                fontSize: '0.85rem'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.25rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Team:</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{deletingTeam.teamName}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.25rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Team ID:</span>
+                <span className="badge-code" style={{ fontSize: '0.75rem' }}>{deletingTeam.teamId}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.25rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Ref ID:</span>
+                <span className="badge-code" style={{ fontSize: '0.75rem' }}>{deletingTeam.referenceId}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.25rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Project:</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {deletingTeam.projectId}
+                  {projects.find(p => p.projectCode === deletingTeam.projectId) ? ` - ${projects.find(p => p.projectCode === deletingTeam.projectId)?.title}` : ''}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.25rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Members:</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {(deletingTeam.members?.length || 0) + 1}
+                </span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 600, margin: 0, lineHeight: 1.35 }}>
+              This will permanently remove the team from ABHYAN. This action cannot be undone.
+            </p>
+
+            {deleteTeamError && (
+              <div
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#ef4444',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.65rem 0.85rem',
+                  fontSize: '0.8rem',
+                  fontWeight: 600
+                }}
+              >
+                {deleteTeamError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => setDeletingTeam(null)}
+                disabled={isDeletingTeam}
+                style={{ minHeight: '40px', padding: '0.4rem 1rem', fontSize: '0.85rem' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDeleteTeam}
+                disabled={isDeletingTeam}
+                style={{
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '0.4rem 1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: isDeletingTeam ? 'not-allowed' : 'pointer',
+                  opacity: isDeletingTeam ? 0.7 : 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  minHeight: '40px'
+                }}
+              >
+                {isDeletingTeam ? (
+                  <>
+                    <Loader2 size={15} className="spin-animation" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Team'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

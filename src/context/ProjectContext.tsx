@@ -13,7 +13,8 @@ import {
   loginAdminUser,
   logoutAdminUser,
   subscribeToAdminAuth,
-  fetchAllTeamsForAdmin
+  fetchAllTeamsForAdmin,
+  deleteTeamFromFirestore
 } from '../firebase/services';
 
 interface ToastNotification {
@@ -81,6 +82,7 @@ interface ProjectContextType {
   // Admin Data Actions
   adminTeams: TeamDocument[];
   loadAdminTeams: () => Promise<void>;
+  deleteTeam: (teamId: string, projectId: string) => Promise<{ success: boolean; message: string }>;
 
   // Toast Notifications
   notifications: ToastNotification[];
@@ -335,6 +337,18 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setAdminTeams(teams);
   };
 
+  const deleteTeam = async (teamId: string, projectId: string) => {
+    const res = await deleteTeamFromFirestore(teamId, projectId);
+    if (res.success) {
+      addNotification('success', 'Team Deleted', 'Team deleted successfully.');
+      await loadAdminTeams();
+      await refreshTeamCounts();
+    } else {
+      addNotification('danger', 'Delete Failed', res.message);
+    }
+    return res;
+  };
+
   return (
     <ProjectContext.Provider
       value={{
@@ -371,6 +385,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         logoutAdmin,
         adminTeams,
         loadAdminTeams,
+        deleteTeam,
         notifications,
         addNotification,
         removeNotification

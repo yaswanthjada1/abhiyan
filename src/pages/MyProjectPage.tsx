@@ -4,6 +4,7 @@ import { ProjectNotes } from '../components/ProjectNotes';
 import { ScreenshotUploadModal } from '../components/ScreenshotUploadModal';
 import { ToolGuideModal } from '../components/ToolGuideModal';
 import { MySpaceComponent } from '../components/MySpaceComponent';
+import { SearchOtherTeamsComponent } from '../components/SearchOtherTeamsComponent';
 import { OfficialTool, CellGuideStep, VivaQuestion, DocumentationSection, ScreenshotMetadata } from '../types/project';
 import {
   BookOpen,
@@ -200,6 +201,9 @@ export const MyProjectPage: React.FC = () => {
 
   return (
     <div style={{ paddingBottom: '3rem' }}>
+      {/* SEARCH OTHER TEAMS */}
+      <SearchOtherTeamsComponent />
+
       {/* 1. HEADER BRANDING & PROJECT DASHBOARD SUMMARY */}
       <div
         style={{
@@ -234,45 +238,6 @@ export const MyProjectPage: React.FC = () => {
               <span>Team: <strong style={{ color: 'var(--text-primary)' }}>{activeTeam.teamName}</strong></span>
               <span>Leader: <strong>{activeTeam.leader.name}</strong></span>
               <span>Members: <strong>{activeTeam.members.length + 1}</strong></span>
-            </div>
-
-            {/* Private Person Identity Selector Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.05em' }}>
-                ACTIVE PERSON IDENTITY:
-              </span>
-              <select
-                value={activePerson ? `${activePerson.name}|${activePerson.rollNumber}` : `${activeTeam.leader.name}|${activeTeam.leader.rollNumber}`}
-                onChange={async (e) => {
-                  const [name, roll] = e.target.value.split('|');
-                  const isLeader = name === activeTeam.leader.name;
-                  await selectPersonIdentity(name, roll, isLeader ? 'leader' : 'member');
-                }}
-                style={{
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  padding: '0.35rem 0.65rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value={`${activeTeam.leader.name}|${activeTeam.leader.rollNumber}`}>
-                  👤 {activeTeam.leader.name} (Leader — Roll: {activeTeam.leader.rollNumber})
-                </option>
-                {activeTeam.members.map((m) => (
-                  <option key={m.rollNumber} value={`${m.name}|${m.rollNumber}`}>
-                    👤 {m.name} (Member — Roll: {m.rollNumber})
-                  </option>
-                ))}
-              </select>
-              {activePerson && (
-                <span style={{ fontSize: '0.725rem', color: 'var(--primary)', fontWeight: 700, background: 'var(--primary-light)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                  ID: {activePerson.personId} · Private Storage Active ✓
-                </span>
-              )}
             </div>
           </div>
 
