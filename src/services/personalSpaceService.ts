@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { PersonIdentity, PersonalPhoto, PersonalNote } from '../types/personalSpace';
-import { optimizePersonalPhoto, uploadPhotoToDriveAPI, GOOGLE_DRIVE_ROOT_FOLDER_ID } from './driveService';
+import { optimizePersonalPhoto, uploadPhotoToDriveAPI, deletePhotoFromDriveAPI } from './driveService';
 
 const PERSON_TOKEN_KEY = 'abh_person_token';
 const ACTIVE_PERSON_ID_KEY = 'abh_active_person_id';
@@ -133,11 +133,8 @@ export const getOrCreatePersonIdentity = async (
  */
 export const authorizePersonRequest = async (
   requestedPersonId: string,
-  providedToken: string,
-  isAdmin: boolean = false
+  providedToken: string
 ): Promise<boolean> => {
-  if (isAdmin) return true;
-
   if (!providedToken || !requestedPersonId) {
     throw new Error('401 Unauthorized: Missing identity credentials.');
   }
@@ -184,10 +181,9 @@ export const authorizePersonRequest = async (
  */
 export const fetchPersonalPhotos = async (
   targetPersonId: string,
-  personToken: string,
-  isAdmin: boolean = false
+  personToken: string
 ): Promise<PersonalPhoto[]> => {
-  await authorizePersonRequest(targetPersonId, personToken, isAdmin);
+  await authorizePersonRequest(targetPersonId, personToken);
 
   try {
     const photosRef = collection(db, 'personalPhotos');
@@ -197,13 +193,19 @@ export const fetchPersonalPhotos = async (
     const photos: PersonalPhoto[] = [];
     snap.forEach(d => {
       const data = d.data();
+      const realDriveId = data.driveFileId && !data.driveFileId.startsWith('drive-file-') ? data.driveFileId : null;
+      const viewUrl = realDriveId
+        ? `/.netlify/functions/drive-photos?driveFileId=${realDriveId}&action=stream`
+        : '';
+
       photos.push({
         photoId: d.id,
         personId: data.personId,
         driveFileId: data.driveFileId,
+        driveFolderId: data.driveFolderId || '',
         fileName: data.fileName,
         caption: data.caption || '',
-        viewUrl: data.viewUrl || '',
+        viewUrl,
         uploadedAt: data.uploadedAt ? (data.uploadedAt.toDate ? data.uploadedAt.toDate().toISOString() : data.uploadedAt) : new Date().toISOString(),
         fileSizeBytes: data.fileSizeBytes
       });
@@ -213,7 +215,6 @@ export const fetchPersonalPhotos = async (
     return photos.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
   } catch (error) {
     console.warn('Error fetching personal photos from Firestore:', error);
-    // Fallback local photos array from localStorage
     const localKey = `abh_photos_${targetPersonId}`;
     const raw = localStorage.getItem(localKey);
     return raw ? JSON.parse(raw) : [];
@@ -233,7 +234,7 @@ export const uploadPersonalPhoto = async (
   caption: string,
   onProgress?: (step: string) => void
 ): Promise<PersonalPhoto> => {
-  await authorizePersonRequest(personId, personToken, false);
+  await authorizePersonRequest(personId, personToken);
 
   // Step 1: Image Optimization
   if (onProgress) onProgress('Step 1/3: Optimizing photo (max 1600x1600 WebP)...');
@@ -247,13 +248,16 @@ export const uploadPersonalPhoto = async (
   let drivePhoto: PersonalPhoto;
   try {
     drivePhoto = await uploadPhotoToDriveAPI(optimized, personId, personToken, caption);
-    console.log(`[PhotoUpload] Step 2 complete: Drive File ID ${drivePhoto.driveFileId}`);
+    if (!drivePhoto || !drivePhoto.driveFileId || drivePhoto.driveFileId.startsWith('drive-file-')) {
+      throw new Error('Google Drive API did not return a valid file ID. Fake Drive IDs are strictly rejected.');
+    }
+    console.log(`[PhotoUpload] Step 2 complete: REAL Drive File ID ${drivePhoto.driveFileId}`);
   } catch (driveErr: any) {
     console.error('[PhotoUpload] Step 2 failed - Google Drive Upload Error:', driveErr);
     throw new Error(`Google Drive upload failed: ${driveErr.message || driveErr}`);
   }
 
-  // Step 3: Save metadata in Firestore /personalPhotos/{photoId}
+  // Step 3: Save metadata in Firestore /personalPhotos/{photoId} (NO BASE64 / NO BLOBS IN FIRESTORE)
   if (onProgress) onProgress('Step 3/3: Saving photo metadata...');
   console.log(`[PhotoUpload] Step 3: Writing Firestore metadata for photoId: ${drivePhoto.photoId}`);
 
@@ -263,14 +267,13 @@ export const uploadPersonalPhoto = async (
       photoId: drivePhoto.photoId,
       personId,
       driveFileId: drivePhoto.driveFileId,
+      driveFolderId: drivePhoto.driveFolderId || '',
       fileName: drivePhoto.fileName,
       caption: (caption || '').trim(),
-      viewUrl: drivePhoto.viewUrl,
       fileSizeBytes: optimized.sizeBytes,
-      rootFolderId: GOOGLE_DRIVE_ROOT_FOLDER_ID,
       uploadedAt: serverTimestamp()
     });
-    console.log(`[PhotoUpload] Step 3 complete: Firestore metadata saved for photoId: ${drivePhoto.photoId}`);
+    console.log(`[PhotoUpload] Step 3 complete: Firestore metadata saved with REAL Drive ID: ${drivePhoto.driveFileId}`);
   } catch (firestoreErr: any) {
     console.warn('[PhotoUpload] Firestore write error:', firestoreErr);
   }
@@ -292,9 +295,17 @@ export const deletePersonalPhoto = async (
   photoId: string,
   personId: string,
   personToken: string,
-  isAdmin: boolean = false
+  driveFileId?: string
 ): Promise<boolean> => {
-  await authorizePersonRequest(personId, personToken, isAdmin);
+  await authorizePersonRequest(personId, personToken);
+
+  if (driveFileId) {
+    try {
+      await deletePhotoFromDriveAPI(photoId, personId, personToken, driveFileId);
+    } catch (driveErr: any) {
+      console.warn('[PhotoDelete] Google Drive deletion warning:', driveErr.message || driveErr);
+    }
+  }
 
   try {
     const photoDocRef = doc(db, 'personalPhotos', photoId);
@@ -325,7 +336,7 @@ export const fetchPersonalNotes = async (
   personToken: string,
   isAdmin: boolean = false
 ): Promise<PersonalNote[]> => {
-  await authorizePersonRequest(targetPersonId, personToken, isAdmin);
+  await authorizePersonRequest(targetPersonId, personToken);
 
   try {
     const notesRef = collection(db, 'personalNotes');
@@ -364,7 +375,7 @@ export const savePersonalNote = async (
   title: string,
   content: string
 ): Promise<PersonalNote> => {
-  await authorizePersonRequest(personId, personToken, false);
+  await authorizePersonRequest(personId, personToken);
 
   const targetNoteId = noteId || `note-${personId}-${Date.now()}`;
   const nowStr = new Date().toISOString();
@@ -413,7 +424,7 @@ export const deletePersonalNote = async (
   personToken: string,
   isAdmin: boolean = false
 ): Promise<boolean> => {
-  await authorizePersonRequest(personId, personToken, isAdmin);
+  await authorizePersonRequest(personId, personToken);
 
   try {
     const noteDocRef = doc(db, 'personalNotes', noteId);
@@ -441,47 +452,22 @@ export interface AdminPersonOverview {
 }
 
 /**
- * Admin: Fetch all personal photos across all students
+ * Admin: Personal photos are private student data - non-accessible to admin
  */
 export const fetchAllPersonalPhotosForAdmin = async (): Promise<PersonalPhoto[]> => {
-  try {
-    const photosSnap = await getDocs(collection(db, 'personalPhotos'));
-    const photos: PersonalPhoto[] = [];
-    photosSnap.forEach(d => {
-      const data = d.data();
-      photos.push({
-        photoId: d.id,
-        personId: data.personId,
-        driveFileId: data.driveFileId,
-        fileName: data.fileName,
-        caption: data.caption || '',
-        viewUrl: data.viewUrl || '',
-        uploadedAt: data.uploadedAt ? (data.uploadedAt.toDate ? data.uploadedAt.toDate().toISOString() : data.uploadedAt) : new Date().toISOString(),
-        fileSizeBytes: data.fileSizeBytes
-      });
-    });
-    return photos.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
-  } catch (error) {
-    console.warn('Admin fetch all photos error:', error);
-    return [];
-  }
+  return [];
 };
 
 /**
- * Admin: Fetch all registered people with photo & note counts
+ * Admin: Fetch all registered people overview
  */
 export const fetchAllPeopleForAdmin = async (): Promise<AdminPersonOverview[]> => {
   try {
     const peopleSnap = await getDocs(collection(db, 'people'));
-    const photosSnap = await getDocs(collection(db, 'personalPhotos'));
     const notesSnap = await getDocs(collection(db, 'personalNotes'));
     const teamsSnap = await getDocs(collection(db, 'teams'));
 
     const photoCounts: Record<string, number> = {};
-    photosSnap.forEach(d => {
-      const p = d.data().personId;
-      if (p) photoCounts[p] = (photoCounts[p] || 0) + 1;
-    });
 
     const noteCounts: Record<string, number> = {};
     notesSnap.forEach(d => {

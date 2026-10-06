@@ -1,14 +1,6 @@
 import { PersonalPhoto } from '../types/personalSpace';
 
 /**
- * GOOGLE DRIVE ROOT FOLDER ID
- * Configured via environment variable with fallback to 167KIQp6yGHnS1BVr0ta_wsy3fYEwiG_P
- */
-export const GOOGLE_DRIVE_ROOT_FOLDER_ID =
-  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GOOGLE_DRIVE_ROOT_FOLDER_ID) ||
-  '167KIQp6yGHnS1BVr0ta_wsy3fYEwiG_P';
-
-/**
  * Image optimization before upload:
  * - Max dimension: ~1600 x 1600
  * - Format: WebP (or JPEG fallback)

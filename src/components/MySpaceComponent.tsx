@@ -65,7 +65,7 @@ export const MySpaceComponent: React.FC<MySpaceComponentProps> = ({ person, isAd
   const loadPhotos = async () => {
     setLoadingPhotos(true);
     try {
-      const data = await fetchPersonalPhotos(person.personId, person.personToken, isAdmin);
+      const data = await fetchPersonalPhotos(person.personId, person.personToken);
       setPhotos(data);
     } catch (err: any) {
       console.warn('Error loading photos:', err);
@@ -151,7 +151,8 @@ export const MySpaceComponent: React.FC<MySpaceComponentProps> = ({ person, isAd
     if (!window.confirm('Are you sure you want to delete this photo?')) return;
 
     try {
-      await deletePersonalPhoto(photoId, person.personId, person.personToken, isAdmin);
+      const targetPhoto = photos.find(p => p.photoId === photoId);
+      await deletePersonalPhoto(photoId, person.personId, person.personToken, targetPhoto?.driveFileId);
       setPhotos(prev => prev.filter(p => p.photoId !== photoId));
       if (viewingPhoto?.photoId === photoId) setViewingPhoto(null);
       setSuccessMessage('Photo deleted ✓');
@@ -314,7 +315,7 @@ export const MySpaceComponent: React.FC<MySpaceComponentProps> = ({ person, isAd
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              Your photos are accessible only to you and ABHYAN admin.
+              Your personal photos are private and accessible only to you.
             </span>
             <button
               className="btn-primary"

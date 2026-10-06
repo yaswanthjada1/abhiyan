@@ -502,7 +502,10 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-lg)',
-            padding: '1.5rem'
+            padding: '1.5rem',
+            boxShadow: 'var(--shadow-sm)',
+            minWidth: 0,
+            overflowWrap: 'break-word'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
@@ -512,7 +515,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             </h3>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.85rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '0.85rem' }}>
             {[
               { day: 'Day 1', title: 'SETUP', desc: 'Deconstruct problem, formulate math model, setup environment.' },
               { day: 'Day 2', title: 'AI VIBE CODE', desc: 'Use AI prompts to build core calculation engine & MVP.' },
@@ -544,6 +547,50 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           </div>
         </div>
 
+        {/* 7. SKILLS & TOOLS ACQUIRED */}
+        <div
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '1.5rem',
+            boxShadow: 'var(--shadow-sm)',
+            minWidth: 0,
+            overflowWrap: 'break-word'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <Cpu size={20} color="var(--primary)" />
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
+              SKILLS & TOOLS ACQUIRED
+            </h3>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem' }}>
+            <div>
+              <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.5rem 0', fontWeight: 700 }}>REQUIRED & LEARNED SKILLS</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {(project.requiredSkills || ['Linear Algebra', 'Problem Solving', 'Data Visualization']).map((skill, idx) => (
+                  <span key={idx} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', padding: '0.3rem 0.65rem', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 600 }}>
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {project.recommendedTechStack && (
+              <div>
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.5rem 0', fontWeight: 700 }}>RECOMMENDED TECH STACK</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {Object.entries(project.recommendedTechStack).map(([k, v]) => (
+                    <span key={k} style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '0.3rem 0.65rem', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 600 }}>
+                      <strong style={{ textTransform: 'capitalize' }}>{k}:</strong> {v}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Bottom CTA Card */}
         {!isFull && (
           <div
@@ -557,7 +604,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '1rem',
-              marginTop: '1rem'
+              marginTop: '1rem',
+              minWidth: 0
             }}
           >
             <div>
