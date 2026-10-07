@@ -35,7 +35,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({ pr
   if (!project) return null;
 
   const currentTeamCount = teamCounts[project.projectCode] || 0;
-  const isFull = currentTeamCount >= 3;
+  const isFull = currentTeamCount >= 5;
   const currentTotalSize = 1 + members.length; // Leader + Members
 
   const handleAddMember = () => {
@@ -63,7 +63,7 @@ export const ProjectSelectionModal: React.FC<ProjectSelectionModalProps> = ({ pr
     setError(null);
 
     if (isFull) {
-      setError('This project has reached its 3-team limit.');
+      setError('This project has reached its 5-team limit.');
       return;
     }
 

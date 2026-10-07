@@ -20,7 +20,7 @@ import {
 } from 'firebase/auth';
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from './config';
-import { TeamDocument, ScreenshotMetadata, AdminUser, Project } from '../types/project';
+import { TeamDocument, ScreenshotMetadata, AdminUser, Project, TeamLeader, TeamMember } from '../types/project';
 import { PROJECTS } from '../data/projects';
 
 // Helper to generate hard-to-guess reference IDs (e.g. MMH-A1-X7K92)
@@ -71,9 +71,9 @@ export const selectProjectAtomic = async (
 
       const currentCount = existingTeamsSnap.size;
 
-      // ATOMIC 3-TEAM CAPACITY CHECK
-      if (currentCount >= 3) {
-        throw new Error(`Sorry, project ${projectCode} is already full (3/3 teams registered).`);
+      // ATOMIC 5-TEAM CAPACITY CHECK
+      if (currentCount >= 5) {
+        throw new Error(`Sorry, project ${projectCode} is already full (5/5 teams registered).`);
       }
 
       const refId = generateReferenceId(projectCode);
@@ -364,23 +364,24 @@ export const subscribeToAdminAuth = (callback: (user: AdminUser | null) => void)
   });
 };
 
-// ADMIN TEAMS LIST
+// ADMIN TEAMS LIST (PARALLELIZED FOR FASTER DATA LOADING)
 export const fetchAllTeamsForAdmin = async (): Promise<TeamDocument[]> => {
   try {
     const teamsSnap = await getDocs(collection(db, 'teams'));
-    const teams: TeamDocument[] = [];
-    for (const d of teamsSnap.docs) {
-      const teamData = d.data() as TeamDocument;
-      try {
-        const scrsSnap = await getDocs(collection(db, 'teams', d.id, 'screenshots'));
-        const scrs: ScreenshotMetadata[] = [];
-        scrsSnap.forEach(s => scrs.push(s.data() as ScreenshotMetadata));
-        teamData.screenshots = scrs;
-      } catch (e) {
-        teamData.screenshots = [];
-      }
-      teams.push(teamData);
-    }
+    const teams = await Promise.all(
+      teamsSnap.docs.map(async d => {
+        const teamData = d.data() as TeamDocument;
+        try {
+          const scrsSnap = await getDocs(collection(db, 'teams', d.id, 'screenshots'));
+          const scrs: ScreenshotMetadata[] = [];
+          scrsSnap.forEach(s => scrs.push(s.data() as ScreenshotMetadata));
+          teamData.screenshots = scrs;
+        } catch (e) {
+          teamData.screenshots = [];
+        }
+        return teamData;
+      })
+    );
     return teams;
   } catch (e) {
     return [];
@@ -449,6 +450,79 @@ export const deleteTeamFromFirestore = async (
 // PUBLIC TEAMS LIST FOR STUDENT SEARCH
 export const fetchPublicTeamsForSearch = async (): Promise<TeamDocument[]> => {
   return await fetchAllTeamsForAdmin();
+};
+
+// UPDATE TEAM IN FIRESTORE (ADMIN EDIT)
+export const updateTeamInFirestore = async (
+  teamId: string,
+  updatedData: {
+    teamName: string;
+    projectId: string;
+    leader: TeamLeader;
+    members: TeamMember[];
+  },
+  oldProjectId: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    if (!auth.currentUser) {
+      return { success: false, message: "You don't have permission to edit teams." };
+    }
+
+    // Check project capacity if project changed
+    if (updatedData.projectId !== oldProjectId) {
+      const teamsRef = collection(db, 'teams');
+      const q = query(teamsRef, where('projectId', '==', updatedData.projectId));
+      const snap = await getDocs(q);
+      const newProjCount = snap.docs.filter(d => d.id !== teamId).length;
+
+      if (newProjCount >= 5) {
+        return {
+          success: false,
+          message: `Cannot move this team. The selected project (${updatedData.projectId}) has reached its 5-team limit.`
+        };
+      }
+    }
+
+    // Update main team document
+    const teamRef = doc(db, 'teams', teamId);
+    await updateDoc(teamRef, {
+      teamName: updatedData.teamName,
+      projectId: updatedData.projectId,
+      leader: updatedData.leader,
+      members: updatedData.members,
+      updatedAt: serverTimestamp()
+    });
+
+    // Update or re-key projectSelections record if project changed or name changed
+    if (updatedData.projectId !== oldProjectId) {
+      // Remove old selection record
+      try {
+        await deleteDoc(doc(db, 'projectSelections', `${oldProjectId}_${teamId}`));
+      } catch (e) {}
+
+      // Create new selection record
+      await setDoc(doc(db, 'projectSelections', `${updatedData.projectId}_${teamId}`), {
+        projectId: updatedData.projectId,
+        projectCode: updatedData.projectId,
+        teamId,
+        teamName: updatedData.teamName,
+        createdAt: serverTimestamp()
+      });
+    } else {
+      // Update selection record teamName if project same
+      try {
+        await updateDoc(doc(db, 'projectSelections', `${oldProjectId}_${teamId}`), {
+          teamName: updatedData.teamName,
+          updatedAt: serverTimestamp()
+        });
+      } catch (e) {}
+    }
+
+    return { success: true, message: 'Team updated successfully.' };
+  } catch (error: any) {
+    console.error('Update team error:', error);
+    return { success: false, message: error?.message || 'Unable to update team. Please try again.' };
+  }
 };
 
 

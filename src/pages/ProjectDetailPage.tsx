@@ -36,8 +36,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   const project = projects.find(p => p.projectCode === projectCode) || projects[0];
   const currentTeamCount = teamCounts[project.projectCode] || 0;
-  const isFull = currentTeamCount >= 3;
-  const availableTeams = Math.max(0, 3 - currentTeamCount);
+  const isFull = currentTeamCount >= 5;
+  const availableTeams = Math.max(0, 5 - currentTeamCount);
 
   const details = getComprehensiveProjectDetails(project);
   const minSize = project.minimumTeamSize || 2;
@@ -96,7 +96,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.825rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Availability:</span>
               <strong style={{ color: isFull ? '#ef4444' : 'var(--success)' }}>
-                {availableTeams} / 3 teams remaining
+                {availableTeams} / 5 teams remaining
               </strong>
             </div>
 

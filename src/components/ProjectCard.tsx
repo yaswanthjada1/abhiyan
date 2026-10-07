@@ -12,8 +12,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   const { setSelectedProjectCode, setActiveTab, teamCounts } = useProjectContext();
 
   const currentTeamCount = teamCounts[project.projectCode] || 0;
-  const isFull = currentTeamCount >= 3;
-  const remainingSlots = Math.max(0, 3 - currentTeamCount);
+  const isFull = currentTeamCount >= 5;
+  const remainingSlots = Math.max(0, 5 - currentTeamCount);
 
   const minSize = project.minimumTeamSize || 2;
   const maxSize = project.maximumTeamSize || 5;
@@ -58,12 +58,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 600 }}>
             <Users size={14} color="var(--text-muted)" />
-            <span>Teams: {currentTeamCount} / 3</span>
+            <span>Teams: {currentTeamCount} / 5</span>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>({minSize}–{maxSize} members)</span>
           </div>
 
           <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
-            {isFull ? 'FULL' : remainingSlots === 3 ? 'Available' : `${remainingSlots} Slot${remainingSlots > 1 ? 's' : ''} Left`}
+            {isFull ? 'FULL' : remainingSlots === 5 ? 'Available' : `${remainingSlots} Slot${remainingSlots > 1 ? 's' : ''} Left`}
           </span>
         </div>
 
@@ -72,7 +72,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           <div
             className="progress-bar-fill"
             style={{
-              width: `${(currentTeamCount / 3) * 100}%`,
+              width: `${(currentTeamCount / 5) * 100}%`,
               background: isFull ? 'var(--danger)' : 'var(--primary)'
             }}
           />

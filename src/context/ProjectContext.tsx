@@ -14,7 +14,8 @@ import {
   logoutAdminUser,
   subscribeToAdminAuth,
   fetchAllTeamsForAdmin,
-  deleteTeamFromFirestore
+  deleteTeamFromFirestore,
+  updateTeamInFirestore
 } from '../firebase/services';
 
 interface ToastNotification {
@@ -81,8 +82,11 @@ interface ProjectContextType {
 
   // Admin Data Actions
   adminTeams: TeamDocument[];
+  loadingAdminTeams: boolean;
+  adminTeamsError: string | null;
   loadAdminTeams: () => Promise<void>;
   deleteTeam: (teamId: string, projectId: string) => Promise<{ success: boolean; message: string }>;
+  updateTeam: (teamId: string, updatedData: any, oldProjectId: string) => Promise<{ success: boolean; message: string }>;
 
   // Toast Notifications
   notifications: ToastNotification[];
@@ -332,9 +336,21 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addNotification('info', 'Signed Out', 'Admin logged out.');
   };
 
+  const [loadingAdminTeams, setLoadingAdminTeams] = useState(false);
+  const [adminTeamsError, setAdminTeamsError] = useState<string | null>(null);
+
   const loadAdminTeams = async () => {
-    const teams = await fetchAllTeamsForAdmin();
-    setAdminTeams(teams);
+    setLoadingAdminTeams(true);
+    setAdminTeamsError(null);
+    try {
+      const teams = await fetchAllTeamsForAdmin();
+      setAdminTeams(teams);
+    } catch (err: any) {
+      console.error('Error fetching admin teams:', err);
+      setAdminTeamsError('Unable to load team data.');
+    } finally {
+      setLoadingAdminTeams(false);
+    }
   };
 
   const deleteTeam = async (teamId: string, projectId: string) => {
@@ -345,6 +361,18 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       await refreshTeamCounts();
     } else {
       addNotification('danger', 'Delete Failed', res.message);
+    }
+    return res;
+  };
+
+  const updateTeam = async (teamId: string, updatedData: any, oldProjectId: string) => {
+    const res = await updateTeamInFirestore(teamId, updatedData, oldProjectId);
+    if (res.success) {
+      addNotification('success', 'Team Updated', 'Team updated successfully.');
+      await loadAdminTeams();
+      await refreshTeamCounts();
+    } else {
+      addNotification('danger', 'Update Failed', res.message);
     }
     return res;
   };
@@ -384,8 +412,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loginAdmin,
         logoutAdmin,
         adminTeams,
+        loadingAdminTeams,
+        adminTeamsError,
         loadAdminTeams,
         deleteTeam,
+        updateTeam,
         notifications,
         addNotification,
         removeNotification

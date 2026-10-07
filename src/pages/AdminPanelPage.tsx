@@ -25,6 +25,9 @@ import {
   Loader2,
   FileText,
   User,
+  Pencil,
+  Plus,
+  RefreshCw,
   Trash2,
   AlertTriangle
 } from 'lucide-react';
@@ -36,7 +39,10 @@ export const AdminPanelPage: React.FC = () => {
     adminUser,
     setActiveTab,
     adminTeams,
+    loadingAdminTeams,
+    adminTeamsError,
     loadAdminTeams,
+    updateTeam,
     deleteTeam,
     logoutAdmin
   } = useProjectContext();
@@ -67,6 +73,108 @@ export const AdminPanelPage: React.FC = () => {
   const [deletingTeam, setDeletingTeam] = useState<TeamDocument | null>(null);
   const [isDeletingTeam, setIsDeletingTeam] = useState(false);
   const [deleteTeamError, setDeleteTeamError] = useState<string | null>(null);
+
+  // Edit Team State
+  const [editingTeam, setEditingTeam] = useState<TeamDocument | null>(null);
+  const [editForm, setEditForm] = useState<{
+    teamName: string;
+    projectId: string;
+    leader: { name: string; rollNumber: string; phone: string; email: string };
+    members: Array<{ name: string; rollNumber: string; phone: string; email: string }>;
+  } | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [confirmRemoveMemberIndex, setConfirmRemoveMemberIndex] = useState<number | null>(null);
+
+  const handleOpenEditTeam = (team: TeamDocument) => {
+    setEditingTeam(team);
+    setEditForm({
+      teamName: team.teamName || '',
+      projectId: team.projectId || '',
+      leader: {
+        name: team.leader?.name || '',
+        rollNumber: team.leader?.rollNumber || '',
+        phone: team.leader?.phone || '',
+        email: team.leader?.email || ''
+      },
+      members: (team.members || []).map((m: any) => ({
+        name: m.name || '',
+        rollNumber: m.rollNumber || '',
+        phone: m.phone || '',
+        email: m.email || ''
+      }))
+    });
+    setEditError(null);
+    setConfirmRemoveMemberIndex(null);
+  };
+
+  const handleAddMember = () => {
+    if (!editForm) return;
+    setEditForm({
+      ...editForm,
+      members: [
+        ...editForm.members,
+        { name: '', rollNumber: '', phone: '', email: '' }
+      ]
+    });
+  };
+
+  const handleRemoveMember = (index: number) => {
+    if (!editForm) return;
+    const newMembers = editForm.members.filter((_, idx) => idx !== index);
+    setEditForm({
+      ...editForm,
+      members: newMembers
+    });
+    setConfirmRemoveMemberIndex(null);
+  };
+
+  const handleSaveTeamEdit = async () => {
+    if (!editingTeam || !editForm) return;
+    if (!editForm.teamName.trim()) {
+      setEditError('Team name cannot be empty.');
+      return;
+    }
+    if (!editForm.leader.name.trim() || !editForm.leader.rollNumber.trim()) {
+      setEditError('Leader name and roll number are required.');
+      return;
+    }
+
+    // Capacity validation if project changed
+    if (editForm.projectId !== editingTeam.projectId) {
+      const targetCount = teamCounts[editForm.projectId] || 0;
+      if (targetCount >= 5) {
+        setEditError(`Cannot move this team. The selected project (${editForm.projectId}) has reached its 5-team limit.`);
+        return;
+      }
+    }
+
+    setIsSavingEdit(true);
+    setEditError(null);
+    try {
+      const res = await updateTeam(
+        editingTeam.teamId,
+        {
+          teamName: editForm.teamName.trim(),
+          projectId: editForm.projectId,
+          leader: editForm.leader,
+          members: editForm.members
+        },
+        editingTeam.projectId
+      );
+      if (res.success) {
+        setEditingTeam(null);
+        setEditForm(null);
+      } else {
+        setEditError(res.message || 'Unable to save team changes.');
+      }
+    } catch (err: any) {
+      console.error('Failed to update team:', err);
+      setEditError(err?.message || 'Unable to save team changes.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   const handleConfirmDeleteTeam = async () => {
     if (!deletingTeam) return;
@@ -160,8 +268,8 @@ export const AdminPanelPage: React.FC = () => {
   const filteredProjects = projects.filter(p => {
     if (categoryFilter !== 'All' && p.category !== categoryFilter) return false;
     const count = teamCounts[p.projectCode] || 0;
-    if (statusFilter === 'Available' && count >= 3) return false;
-    if (statusFilter === 'Full' && count < 3) return false;
+    if (statusFilter === 'Available' && count >= 5) return false;
+    if (statusFilter === 'Full' && count < 5) return false;
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase().trim();
@@ -493,7 +601,7 @@ export const AdminPanelPage: React.FC = () => {
                 <tbody>
                   {projects.slice(0, 15).map(p => {
                     const count = teamCounts[p.projectCode] || 0;
-                    const isFull = count >= 3;
+                    const isFull = count >= 5;
                     return (
                       <tr key={p.projectCode} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ padding: '0.65rem 1rem' }}>
@@ -503,10 +611,10 @@ export const AdminPanelPage: React.FC = () => {
                         <td style={{ padding: '0.65rem 1rem' }}>
                           <span className="badge badge-category">{p.category}</span>
                         </td>
-                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 3</td>
+                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 5</td>
                         <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>
-                          <span className={`badge ${isFull ? 'badge-status-full' : count === 2 ? 'badge' : 'badge-status-available'}`} style={count === 2 ? { background: 'var(--warning-bg)', color: 'var(--warning)' } : {}}>
-                            {isFull ? 'Full' : count === 2 ? 'Almost Full' : 'Available'}
+                          <span className={`badge ${isFull ? 'badge-status-full' : count >= 4 ? 'badge' : 'badge-status-available'}`} style={count >= 4 && !isFull ? { background: 'var(--warning-bg)', color: 'var(--warning)' } : {}}>
+                            {isFull ? 'Full' : count >= 4 ? 'Almost Full' : 'Available'}
                           </span>
                         </td>
                       </tr>
@@ -520,13 +628,13 @@ export const AdminPanelPage: React.FC = () => {
             <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
               {projects.slice(0, 10).map(p => {
                 const count = teamCounts[p.projectCode] || 0;
-                const isFull = count >= 3;
+                const isFull = count >= 5;
                 return (
                   <div key={p.projectCode} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                       <span className="badge-code">{p.projectCode}</span>
                       <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
-                        {isFull ? 'Full' : `${count}/3 Teams`}
+                        {isFull ? 'Full' : `${count}/5 Teams`}
                       </span>
                     </div>
                     <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.2rem' }}>{p.title}</div>
@@ -633,7 +741,7 @@ export const AdminPanelPage: React.FC = () => {
                 <tbody>
                   {filteredProjects.map(p => {
                     const count = teamCounts[p.projectCode] || 0;
-                    const isFull = count >= 3;
+                    const isFull = count >= 5;
                     return (
                       <tr key={p.projectCode} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ padding: '0.65rem 1rem' }}>
@@ -643,7 +751,7 @@ export const AdminPanelPage: React.FC = () => {
                         <td style={{ padding: '0.65rem 1rem' }}>
                           <span className="badge badge-category">{p.category}</span>
                         </td>
-                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 3</td>
+                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 5</td>
                         <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>
                           <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
                             {isFull ? 'Full' : 'Available'}
@@ -669,13 +777,13 @@ export const AdminPanelPage: React.FC = () => {
             <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
               {filteredProjects.map(p => {
                 const count = teamCounts[p.projectCode] || 0;
-                const isFull = count >= 3;
+                const isFull = count >= 5;
                 return (
                   <div key={p.projectCode} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                       <span className="badge-code">{p.projectCode}</span>
                       <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
-                        {isFull ? 'Full' : `${count}/3 Teams`}
+                        {isFull ? 'Full' : `${count}/5 Teams`}
                       </span>
                     </div>
                     <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.25rem' }}>{p.title}</div>
@@ -706,140 +814,182 @@ export const AdminPanelPage: React.FC = () => {
           </div>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            {/* Desktop Table */}
-            <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                <thead>
-                  <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-color)', textTransform: 'uppercase', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Team</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Project</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Leader</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Members</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Progress</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Status</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
-                  </tr>
-                </thead>
+            {loadingAdminTeams ? (
+              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Loader2 size={26} className="spin" style={{ margin: '0 auto 0.75rem', display: 'block', color: 'var(--primary)' }} />
+                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>Loading ABHYAN team data...</div>
+              </div>
+            ) : adminTeamsError ? (
+              <div style={{ padding: '3rem 2rem', textAlign: 'center', background: 'var(--bg-card)' }}>
+                <p style={{ color: '#ef4444', fontWeight: 600, fontSize: '0.95rem', marginBottom: '1rem' }}>
+                  {adminTeamsError}
+                </p>
+                <button
+                  className="btn-secondary"
+                  onClick={loadAdminTeams}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', margin: '0 auto', minHeight: '40px', padding: '0.4rem 1rem' }}
+                >
+                  <RefreshCw size={15} /> Retry
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table */}
+                <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-color)', textTransform: 'uppercase', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Team</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Project</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Leader</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Members</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Progress</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Status</th>
+                        <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
 
-                <tbody>
-                  {filteredTeams.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        No teams registered yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredTeams.map(t => {
-                      const prog = t.progress || 0;
-                      const isComplete = prog >= 100;
-                      return (
-                        <tr key={t.teamId} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '0.65rem 1rem', fontWeight: 700 }}>{t.teamName}</td>
-                          <td style={{ padding: '0.65rem 1rem' }}>
-                            <span className="badge-code">{t.projectId}</span>
-                          </td>
-                          <td style={{ padding: '0.65rem 1rem' }}>{t.leader?.name || 'N/A'}</td>
-                          <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>{(t.members?.length || 0) + 1}</td>
-                          <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--primary)' }}>
-                            {prog}%
-                          </td>
-                          <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>
-                            <span className={`badge ${isComplete ? 'badge-status-available' : 'badge'}`} style={!isComplete ? { background: 'var(--primary-light)', color: 'var(--primary)' } : {}}>
-                              {isComplete ? 'Completed' : 'In Progress'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '0.65rem 1rem', textAlign: 'right' }}>
-                            <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                              <button
-                                className="btn-secondary"
-                                onClick={() => handleOpenTeamDetail(t)}
-                                style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', minHeight: '36px' }}
-                              >
-                                <Eye size={13} /> View Team
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDeletingTeam(t);
-                                  setDeleteTeamError(null);
-                                }}
-                                style={{
-                                  fontSize: '0.75rem',
-                                  padding: '0.25rem 0.55rem',
-                                  minHeight: '36px',
-                                  background: 'rgba(239, 68, 68, 0.1)',
-                                  color: '#ef4444',
-                                  border: '1px solid rgba(239, 68, 68, 0.25)',
-                                  borderRadius: 'var(--radius-sm)',
-                                  fontWeight: 600,
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.25rem'
-                                }}
-                              >
-                                <Trash2 size={13} /> Delete
-                              </button>
-                            </div>
+                    <tbody>
+                      {filteredTeams.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                            No teams registered yet.
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      ) : (
+                        filteredTeams.map(t => {
+                          const prog = t.progress || 0;
+                          const isComplete = prog >= 100;
+                          return (
+                            <tr key={t.teamId} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                              <td style={{ padding: '0.65rem 1rem', fontWeight: 700 }}>{t.teamName}</td>
+                              <td style={{ padding: '0.65rem 1rem' }}>
+                                <span className="badge-code">{t.projectId}</span>
+                              </td>
+                              <td style={{ padding: '0.65rem 1rem' }}>{t.leader?.name || 'N/A'}</td>
+                              <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>{(t.members?.length || 0) + 1}</td>
+                              <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--primary)' }}>
+                                {prog}%
+                              </td>
+                              <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>
+                                <span className={`badge ${isComplete ? 'badge-status-available' : 'badge'}`} style={!isComplete ? { background: 'var(--primary-light)', color: 'var(--primary)' } : {}}>
+                                  {isComplete ? 'Completed' : 'In Progress'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '0.65rem 1rem', textAlign: 'right' }}>
+                                <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                                  <button
+                                    className="btn-secondary"
+                                    onClick={() => handleOpenTeamDetail(t)}
+                                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem', minHeight: '36px' }}
+                                  >
+                                    <Eye size={13} /> View
+                                  </button>
+                                  <button
+                                    className="btn-secondary"
+                                    onClick={() => handleOpenEditTeam(t)}
+                                    style={{
+                                      fontSize: '0.75rem',
+                                      padding: '0.25rem 0.55rem',
+                                      minHeight: '36px',
+                                      color: 'var(--primary)',
+                                      borderColor: 'var(--primary-light)'
+                                    }}
+                                  >
+                                    <Pencil size={13} /> Edit
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setDeletingTeam(t);
+                                      setDeleteTeamError(null);
+                                    }}
+                                    style={{
+                                      fontSize: '0.75rem',
+                                      padding: '0.25rem 0.55rem',
+                                      minHeight: '36px',
+                                      background: 'rgba(239, 68, 68, 0.1)',
+                                      color: '#ef4444',
+                                      border: '1px solid rgba(239, 68, 68, 0.25)',
+                                      borderRadius: 'var(--radius-sm)',
+                                      fontWeight: 600,
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem'
+                                    }}
+                                  >
+                                    <Trash2 size={13} /> Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
-            {/* Mobile Card View */}
-            <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
-              {filteredTeams.length === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1rem' }}>No teams registered yet.</p>
-              ) : (
-                filteredTeams.map(t => (
-                  <div key={t.teamId} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                      <span className="badge-code">{t.projectId}</span>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>{t.progress || 0}%</span>
-                    </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.25rem' }}>{t.teamName}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                      Leader: {t.leader?.name || 'N/A'} • {(t.members?.length || 0) + 1} Members
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                      <button
-                        className="btn-secondary"
-                        onClick={() => handleOpenTeamDetail(t)}
-                        style={{ flex: 1, justifyContent: 'center', minHeight: '44px' }}
-                      >
-                        <Eye size={14} /> View Details
-                      </button>
-                      <button
-                        onClick={() => {
-                          setDeletingTeam(t);
-                          setDeleteTeamError(null);
-                        }}
-                        style={{
-                          flex: 1,
-                          justifyContent: 'center',
-                          minHeight: '44px',
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          color: '#ef4444',
-                          border: '1px solid rgba(239, 68, 68, 0.25)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontWeight: 700,
-                          fontSize: '0.85rem',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.35rem'
-                        }}
-                      >
-                        <Trash2 size={14} /> Delete Team
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                {/* Mobile Card View */}
+                <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
+                  {filteredTeams.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1rem' }}>No teams registered yet.</p>
+                  ) : (
+                    filteredTeams.map(t => (
+                      <div key={t.teamId} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                          <span className="badge-code">{t.projectId}</span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)' }}>{t.progress || 0}%</span>
+                        </div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.25rem' }}>{t.teamName}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                          Leader: {t.leader?.name || 'N/A'} • {(t.members?.length || 0) + 1} Members
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                          <button
+                            className="btn-secondary"
+                            onClick={() => handleOpenTeamDetail(t)}
+                            style={{ flex: 1, justifyContent: 'center', minHeight: '44px' }}
+                          >
+                            <Eye size={14} /> View
+                          </button>
+                          <button
+                            className="btn-secondary"
+                            onClick={() => handleOpenEditTeam(t)}
+                            style={{ flex: 1, justifyContent: 'center', minHeight: '44px', color: 'var(--primary)', borderColor: 'var(--primary-light)' }}
+                          >
+                            <Pencil size={14} /> Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeletingTeam(t);
+                              setDeleteTeamError(null);
+                            }}
+                            style={{
+                              flex: 1,
+                              justifyContent: 'center',
+                              minHeight: '44px',
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              color: '#ef4444',
+                              border: '1px solid rgba(239, 68, 68, 0.25)',
+                              borderRadius: 'var(--radius-sm)',
+                              fontWeight: 700,
+                              fontSize: '0.85rem',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem'
+                            }}
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -869,17 +1019,17 @@ export const AdminPanelPage: React.FC = () => {
                 <tbody>
                   {projects.map(p => {
                     const count = teamCounts[p.projectCode] || 0;
-                    const isFull = count >= 3;
+                    const isFull = count >= 5;
                     return (
                       <tr key={p.projectCode} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ padding: '0.65rem 1rem' }}>
                           <span className="badge-code">{p.projectCode}</span>
                         </td>
                         <td style={{ padding: '0.65rem 1rem', fontWeight: 600 }}>{p.title}</td>
-                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 3</td>
+                        <td style={{ padding: '0.65rem 1rem', textAlign: 'center', fontWeight: 700 }}>{count} / 5</td>
                         <td style={{ padding: '0.65rem 1rem', textAlign: 'center' }}>
                           <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
-                            {isFull ? 'Full' : `${3 - count} Available`}
+                            {isFull ? 'Full' : `${5 - count} Available`}
                           </span>
                         </td>
                       </tr>
@@ -892,13 +1042,13 @@ export const AdminPanelPage: React.FC = () => {
             <div className="mobile-card-view" style={{ padding: '0.85rem' }}>
               {projects.map(p => {
                 const count = teamCounts[p.projectCode] || 0;
-                const isFull = count >= 3;
+                const isFull = count >= 5;
                 return (
                   <div key={p.projectCode} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '0.85rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                       <span className="badge-code">{p.projectCode}</span>
                       <span className={`badge ${isFull ? 'badge-status-full' : 'badge-status-available'}`}>
-                        {isFull ? 'Full' : `${3 - count} Available`}
+                        {isFull ? 'Full' : `${5 - count} Available`}
                       </span>
                     </div>
                     <div style={{ fontSize: '0.875rem', fontWeight: 700 }}>{p.title}</div>
@@ -1127,7 +1277,7 @@ export const AdminPanelPage: React.FC = () => {
                 2. 5-Day Framework & Capacity Limit
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Projects are capped at maximum 3 teams per project statement. Students follow a standardized 5-day roadmap (Day 1 Setup, Day 2 AI Vibe Code, Day 3 Customise, Day 4 Document, Day 5 Demo) and upload proof screenshots for each stage.
+                Projects are capped at maximum 5 teams per project statement. Students follow a standardized 5-day roadmap (Day 1 Setup, Day 2 AI Vibe Code, Day 3 Customise, Day 4 Document, Day 5 Demo) and upload proof screenshots for each stage.
               </p>
             </div>
           </div>
@@ -1200,7 +1350,7 @@ export const AdminPanelPage: React.FC = () => {
             </div>
 
             <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem', marginTop: '1rem' }}>
-              <strong style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>REGISTERED TEAMS ({teamCounts[viewingProject.projectCode] || 0} / 3):</strong>
+              <strong style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>REGISTERED TEAMS ({teamCounts[viewingProject.projectCode] || 0} / 5):</strong>
               {adminTeams.filter(t => t.projectId === viewingProject.projectCode).length === 0 ? (
                 <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>No teams registered for this project statement yet.</p>
               ) : (
@@ -1512,6 +1662,333 @@ export const AdminPanelPage: React.FC = () => {
                   </>
                 ) : (
                   'Delete Team'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT TEAM MODAL */}
+      {editingTeam && editForm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100,
+            padding: '1rem'
+          }}
+          onClick={() => !isSavingEdit && setEditingTeam(null)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-lg)',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '1.5rem',
+              boxShadow: 'var(--shadow-lg)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>
+                  TEAM ID: {editingTeam.teamId}
+                </div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  Edit Team
+                </h2>
+              </div>
+              <button
+                onClick={() => !isSavingEdit && setEditingTeam(null)}
+                disabled={isSavingEdit}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {editError && (
+              <div
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#ef4444',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.65rem 0.85rem',
+                  fontSize: '0.825rem',
+                  fontWeight: 600
+                }}
+              >
+                {editError}
+              </div>
+            )}
+
+            {/* TEAM NAME */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem', textTransform: 'uppercase' }}>
+                Team Name
+              </label>
+              <input
+                type="text"
+                value={editForm.teamName}
+                onChange={e => setEditForm({ ...editForm, teamName: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-subtle)',
+                  fontSize: '0.9rem',
+                  fontWeight: 600
+                }}
+              />
+            </div>
+
+            {/* PROJECT SELECTION */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem', textTransform: 'uppercase' }}>
+                Selected Project
+              </label>
+              <select
+                value={editForm.projectId}
+                onChange={e => setEditForm({ ...editForm, projectId: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-subtle)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  minHeight: '42px'
+                }}
+              >
+                {projects.map(p => {
+                  const count = teamCounts[p.projectCode] || 0;
+                  const isCurrent = p.projectCode === editingTeam.projectId;
+                  const isFull = !isCurrent && count >= 5;
+                  return (
+                    <option key={p.projectCode} value={p.projectCode} disabled={isFull}>
+                      {p.projectCode} — {p.title} ({count}/5 teams{isFull ? ' - FULL' : ''})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* TEAM LEADER */}
+            <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.65rem', textTransform: 'uppercase' }}>
+                Team Leader
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.65rem' }}>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Name *</span>
+                  <input
+                    type="text"
+                    value={editForm.leader.name}
+                    onChange={e => setEditForm({ ...editForm, leader: { ...editForm.leader, name: e.target.value } })}
+                    style={{ width: '100%', padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Roll Number *</span>
+                  <input
+                    type="text"
+                    value={editForm.leader.rollNumber}
+                    onChange={e => setEditForm({ ...editForm, leader: { ...editForm.leader, rollNumber: e.target.value } })}
+                    style={{ width: '100%', padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Phone Number</span>
+                  <input
+                    type="text"
+                    value={editForm.leader.phone}
+                    onChange={e => setEditForm({ ...editForm, leader: { ...editForm.leader, phone: e.target.value } })}
+                    style={{ width: '100%', padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email</span>
+                  <input
+                    type="email"
+                    value={editForm.leader.email}
+                    onChange={e => setEditForm({ ...editForm, leader: { ...editForm.leader, email: e.target.value } })}
+                    style={{ width: '100%', padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* TEAM MEMBERS */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Team Members ({editForm.members.length})
+                </div>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={handleAddMember}
+                  style={{ fontSize: '0.775rem', padding: '0.25rem 0.65rem', minHeight: '34px', color: 'var(--primary)', borderColor: 'var(--primary-light)' }}
+                >
+                  <Plus size={13} /> Add Member
+                </button>
+              </div>
+
+              {editForm.members.length === 0 ? (
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.5rem 0' }}>
+                  No additional members in this team.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {editForm.members.map((m, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        background: 'var(--bg-subtle)',
+                        padding: '0.85rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border-color)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                          Member #{idx + 1}
+                        </span>
+                        {confirmRemoveMemberIndex === idx ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600 }}>Remove this member from the team?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMember(idx)}
+                              style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              Remove
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmRemoveMemberIndex(null)}
+                              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmRemoveMemberIndex(idx)}
+                            style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                          >
+                            <Trash2 size={13} /> Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                        <div>
+                          <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Name</span>
+                          <input
+                            type="text"
+                            value={m.name}
+                            onChange={e => {
+                              const newMembers = [...editForm.members];
+                              newMembers[idx].name = e.target.value;
+                              setEditForm({ ...editForm, members: newMembers });
+                            }}
+                            style={{ width: '100%', padding: '0.35rem 0.55rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.825rem' }}
+                          />
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Roll Number</span>
+                          <input
+                            type="text"
+                            value={m.rollNumber}
+                            onChange={e => {
+                              const newMembers = [...editForm.members];
+                              newMembers[idx].rollNumber = e.target.value;
+                              setEditForm({ ...editForm, members: newMembers });
+                            }}
+                            style={{ width: '100%', padding: '0.35rem 0.55rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.825rem' }}
+                          />
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Phone</span>
+                          <input
+                            type="text"
+                            value={m.phone}
+                            onChange={e => {
+                              const newMembers = [...editForm.members];
+                              newMembers[idx].phone = e.target.value;
+                              setEditForm({ ...editForm, members: newMembers });
+                            }}
+                            style={{ width: '100%', padding: '0.35rem 0.55rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.825rem' }}
+                          />
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Email</span>
+                          <input
+                            type="email"
+                            value={m.email}
+                            onChange={e => {
+                              const newMembers = [...editForm.members];
+                              newMembers[idx].email = e.target.value;
+                              setEditForm({ ...editForm, members: newMembers });
+                            }}
+                            style={{ width: '100%', padding: '0.35rem 0.55rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '0.825rem' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* FOOTER ACTIONS */}
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setEditingTeam(null)}
+                disabled={isSavingEdit}
+                style={{ minHeight: '40px', padding: '0.4rem 1rem', fontSize: '0.85rem' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveTeamEdit}
+                disabled={isSavingEdit}
+                className="btn-primary"
+                style={{ minHeight: '40px', padding: '0.4rem 1.25rem', fontSize: '0.85rem', fontWeight: 700 }}
+              >
+                {isSavingEdit ? (
+                  <>
+                    <Loader2 size={15} className="spin" /> Saving changes...
+                  </>
+                ) : (
+                  'Save Changes'
                 )}
               </button>
             </div>
